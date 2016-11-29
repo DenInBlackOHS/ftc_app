@@ -16,8 +16,8 @@ public class OmniAutoClass extends LinearOpMode {
 
     private double myWheelSize;
     private double myMotorRatio;
-    private static final double encoderClicksPerRev = 560;
-    private static double clicksPerInch = encoderClicksPerRev / (Math.PI * 4);
+    private static final double encoderClicksPerRev = 140 * 4;
+    private static double clicksPerInch = (encoderClicksPerRev * 20) / (Math.PI * 4);
 
     /*
      * Sets up the parameters of the robot to use in our functions
@@ -25,17 +25,15 @@ public class OmniAutoClass extends LinearOpMode {
      * wheelSize = Diameter of the wheel in inches
      */
     public void setupRobotParameters(double newWheelSize, double newMotorRatio) {
-        robot.init(hardwareMap);
-//        robot.leftMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        robot.leftMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        robot.rightMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        robot.rightMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        robot.leftMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        robot.leftMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        robot.rightMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        robot.rightMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.rightMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.rightMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rightMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rightMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        robot.resetDriveEncoders();
         myWheelSize = newWheelSize;
         myMotorRatio = newMotorRatio;
 
@@ -49,153 +47,33 @@ public class OmniAutoClass extends LinearOpMode {
         int position = robot.leftMotorRear.getCurrentPosition();
         int clicksForDistance = position + (int) (distance * clicksPerInch);
 
-        while ((position < clicksForDistance) && (sleepTime < maxTime))
-        {
+        /*robot.leftMotorFore.setTargetPosition(clicksForDistance);
+        robot.leftMotorRear.setTargetPosition(clicksForDistance);
+        robot.rightMotorFore.setTargetPosition(clicksForDistance);
+        robot.rightMotorRear.setTargetPosition(clicksForDistance);
+
+        robot.leftMotorFore.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.leftMotorRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.rightMotorFore.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.rightMotorRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);*/
+
+        do {
             String myTelemetry = "Current Encoder: " + position + " Destination Encoder: " + clicksForDistance;
             telemetry.addLine(myTelemetry);
             telemetry.addData("Setting Power: ", speed);
             telemetry.addData("Sleep Time: ", sleepTime);
-
-            // Since this is a driveForward function, the Y Axis is the only important axis
-            robot.drive(0.0, speed, 0.0, 0.0);
+            robot.leftMotorFore.setPower(speed);
+            robot.rightMotorFore.setPower(-speed);
+            robot.leftMotorRear.setPower(speed);
+            robot.rightMotorRear.setPower(-speed);
             updateTelemetry(telemetry);
 
-            sleep(50);
-            sleepTime += 50;
             position = robot.leftMotorRear.getCurrentPosition();
-            if (isStopRequested()) {
-                // If stop has been requested, break out of the while loop.
-                break;
-            }
-        }
-
-        robot.leftMotorFore.setPower(0);
-        robot.rightMotorFore.setPower(0);
-        robot.leftMotorRear.setPower(0);
-        robot.rightMotorRear.setPower(0);
-    }
-
-    public boolean reachedClickPosition(int position, int destination, double speed)
-    {
-        boolean result = false;
-        if(speed > 0)
-        {
-            if(position > destination) {
-                result = true;
-            }
-        }
-        else
-        {
-            if(position < destination) {
-                result = true;
-            }
-        }
-        return result;
-    }
-
-    public void driveForwardOnHeading(double speed, double distance, int maxTime) {
-
-        //temporary fix until we understand
-        double correctedDistance = distance / 1.75;
-
-        int sleepTime = 0;
-        int position = robot.leftMotorRear.getCurrentPosition();
-        int finalEncoderValue;
-
-        if (speed < 0) {
-            finalEncoderValue = position - (int) (correctedDistance * clicksPerInch);
-        } else {
-            finalEncoderValue = position + (int) (correctedDistance * clicksPerInch);
-        }
-
-        double gyroReading = robot.readGyro();
-        double holdAngle = gyroReading;
-        double deltaAngle = 0.0;
-        final double SAME_ANGLE = 2;
-        final double ROTATE_SPEED = 0.1;
-        double rotateSpeed = 0.0;
-
-        while ((!reachedClickPosition(position, finalEncoderValue, speed) && (sleepTime < maxTime)))
-        {
-            String myTelemetry = "Current Encoder: " + position + " Destination Encoder: " + finalEncoderValue;
-            telemetry.addLine(myTelemetry);
-            telemetry.addData("Setting Power: ", speed);
-            telemetry.addData("Sleep Time: ", sleepTime);
-
-            gyroReading = robot.readGyro();
-            deltaAngle = gyroReading - holdAngle;
-
-            if(Math.abs(deltaAngle) > SAME_ANGLE)
-            {
-                if(deltaAngle > 0.0)
-                {
-                    rotateSpeed = ROTATE_SPEED;
-                }
-                else
-                {
-                    rotateSpeed = - ROTATE_SPEED;
-                }
-            }
-            else
-            {
-                rotateSpeed = 0.0;
-            }
-            // Since this is a driveForward function, the Y Axis is the only important axis
-            robot.drive(0.0, speed, rotateSpeed, -gyroReading);
-            updateTelemetry(telemetry);
-
-            sleep(50);
+            try {
+                sleep(50);
+            } catch (InterruptedException e) {}
             sleepTime += 50;
-            position = robot.leftMotorRear.getCurrentPosition();
-            if (isStopRequested()) {
-                // If stop has been requested, break out of the while loop.
-                break;
-            }
-        }
-
-        robot.leftMotorFore.setPower(0);
-        robot.rightMotorFore.setPower(0);
-        robot.leftMotorRear.setPower(0);
-        robot.rightMotorRear.setPower(0);
-    }
-
-    public void rotateRobot(double speed, double angle, int maxTime) {
-
-        int sleepTime = 0;
-        double gyroReading = robot.readGyro();
-        double deltaAngle = gyroReading - angle;
-        final double SAME_ANGLE = 2;
-        double rotateSpeed = 0.0;
-
-        while (Math.abs(deltaAngle) > SAME_ANGLE && (sleepTime < maxTime)) {
-            String myTelemetry = "Current Angle: " + gyroReading + " Destination Angle: " + angle;
-            telemetry.addLine(myTelemetry);
-            telemetry.addData("Sleep Time: ", sleepTime);
-
-            if(deltaAngle > 0.0)
-            {
-                // Positive angle, need to rotate right
-                rotateSpeed = speed;
-            }
-            else
-            {
-                // Negative angle, need to rotate left;
-                rotateSpeed = - speed;
-            }
-            telemetry.addData("Rotate Speed: ", rotateSpeed);
-            robot.drive(0.0, 0.0, rotateSpeed, 0.0);
-            updateTelemetry(telemetry);
-
-            sleep(50);
-            sleepTime += 50;
-            gyroReading = robot.readGyro();
-            deltaAngle = gyroReading - angle;
-            if(isStopRequested())
-            {
-                // If stop has been requested, break out of the while loop.
-                break;
-            }
-        }
+        } while ((position < clicksForDistance) && (sleepTime < maxTime));
 
         robot.leftMotorFore.setPower(0);
         robot.rightMotorFore.setPower(0);
@@ -213,40 +91,22 @@ public class OmniAutoClass extends LinearOpMode {
         robot.shootMotor2.setPower(speed);
 
         // Allow the shooter motors to come up to speed
-        sleep(2000);
+        try { sleep(200);
+        } catch (InterruptedException e) {}
 
         // Lift the balls to the shooter
         robot.liftMotor.setPower(.75);
-        robot.sweeperMotor.setPower(.75);
+        robot.armMotor.setPower(.75);
 
         updateTelemetry(telemetry);
 
         // Let things happen
-        sleep(fireTime);
+        try { sleep(fireTime);
+        } catch (InterruptedException e) {}
 
         robot.shootMotor1.setPower(0);
         robot.shootMotor2.setPower(0);
         robot.liftMotor.setPower(0);
-        robot.sweeperMotor.setPower(0);
-    }
-
-    public boolean returnedRed () {
-        boolean red = false;
-
-        if (robot.colorSensor.red() > robot.colorSensor.blue()) {
-            red = true;
-        }
-
-        return red;
-    }
-
-    public boolean returnedBlue () {
-        boolean blue = false;
-
-        if (robot.colorSensor.red() < robot.colorSensor.blue()) {
-            blue = true;
-        }
-
-        return blue;
+        robot.armMotor.setPower(0);
     }
 }
