@@ -14,7 +14,7 @@ public class OmniAuto extends OmniAutoClass {
     @Override
     public void runOpMode() throws InterruptedException{
 
-        robot.init(hardwareMap);
+//        robot.init(hardwareMap);
         setupRobotParameters(4, 20);
         telemetry.addLine("Ready");
         updateTelemetry(telemetry);
@@ -28,12 +28,21 @@ public class OmniAuto extends OmniAutoClass {
         telemetry.addLine("Done Shooting");
         updateTelemetry(telemetry);
 
+        // Check to see if the program should exit
+        if(isStopRequested())
+        {
+            return;
+        }
         sleep(6000);
 
+        // Check to see if the program should exit
+        if(isStopRequested())
+        {
+            return;
+        }
         driveForward(-0.4, 72, 3000);
         telemetry.addLine("Go");
         updateTelemetry(telemetry);
-
     }
 
 }
