@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import static java.lang.Math.*;
+
 /**
  *Created by Ethan
  */
@@ -22,6 +24,9 @@ public class HardwareOmnibot
     public DcMotor shootMotor2 = null;
     public Servo buttonPush = null;
 
+    // Might have to lower from max 2800
+    public static final int encoderClicksPerSecond = 2800;
+
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
     //private ElapsedTime period  = new ElapsedTime();
@@ -29,6 +34,67 @@ public class HardwareOmnibot
     /* Constructor */
     public HardwareOmnibot(){
 
+    }
+
+    public void initGyro()
+    {
+        // Init Gyro Code
+    }
+
+    public void resetGyro()
+    {
+        // Reset Gyro Code
+    }
+
+    public double readGyro()
+    {
+        // Read Gyro Code
+        return 0.0;
+    }
+
+    // xPower: -1.0 to 1.0 power in the X axis
+    // yPower: -1.0 to 1.0 power in the Y axis
+    // spin: -1.0 to 1.0 power to spin, reduced to 20%
+    public void drive(double xPower, double yPower, double spin, double angleOffset)
+    {
+        // Read Gyro Angle Here
+        double reducedSpin = spin * 0.2;
+        double gyroAngle = readGyro() + angleOffset;
+        double leftFrontAngle = toRadians(45.0 + gyroAngle);
+        double rightFrontAngle = toRadians(-45.0 + gyroAngle);
+        double leftRearAngle = toRadians(135.0 + gyroAngle);
+        double rightRearAngle = toRadians(-135.0 + gyroAngle);
+
+        if(abs(yPower) < 0.1)
+        {
+            yPower = 0.0;
+        }
+        if(abs(xPower) < 0.1)
+        {
+            xPower = 0.0;
+        }
+        if(abs(reducedSpin) < 0.02)
+        {
+            reducedSpin = 0.0;
+        }
+
+        double LFpower = (xPower * cos(leftFrontAngle) + yPower * sin(leftFrontAngle))/sqrt(2) + reducedSpin;
+        double LRpower = (xPower * cos(leftRearAngle) + yPower * sin(leftRearAngle))/sqrt(2) + reducedSpin;
+        double RFpower = (xPower * cos(rightFrontAngle) + yPower * sin(rightFrontAngle))/sqrt(2) + reducedSpin;
+        double RRpower = (xPower * cos(rightRearAngle) + yPower * sin(rightRearAngle))/sqrt(2) + reducedSpin;
+
+        double maxPower = max(1.0, max(max(LFpower, LRpower),
+                max(RFpower, RRpower)));
+
+        LFpower /= maxPower;
+        RFpower /= maxPower;
+        RFpower /= maxPower;
+        RRpower /= maxPower;
+
+        leftMotorFore.setPower(LFpower);
+        rightMotorFore.setPower(RFpower);
+        leftMotorRear.setPower(LRpower);
+        rightMotorRear.setPower(RRpower);
     }
 
     /* Initialize standard Hardware interfaces */
@@ -47,10 +113,10 @@ public class HardwareOmnibot
         shootMotor2 = hwMap.dcMotor.get("Shoot2");
         buttonPush = hwMap.servo.get("ServoButton");
 
-        leftMotorFore.setDirection(DcMotor.Direction.REVERSE); // Set to REVERSE if using AndyMark motors
+        leftMotorFore.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         rightMotorFore.setDirection(DcMotor.Direction.FORWARD);// Set to FORWARD if using AndyMark motors
         leftMotorRear.setDirection(DcMotor.Direction.FORWARD); // Set to FORWARD if using AndyMark motors
-        rightMotorRear.setDirection(DcMotor.Direction.REVERSE);// Set to REVERSE if using AndyMark motors
+        rightMotorRear.setDirection(DcMotor.Direction.FORWARD);// Set to REVERSE if using AndyMark motors
 
         armMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
         liftMotor.setDirection(DcMotor.Direction.FORWARD);// Set to FORWARD if using AndyMark motors
@@ -67,18 +133,24 @@ public class HardwareOmnibot
         shootMotor1.setPower(0);
         shootMotor2.setPower(0);
 
-        // Set all motors to run without encoders.
-        // May want to use RUN_USING_ENCODERS if encoders are installed.
         leftMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shootMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shootMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         liftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shootMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shootMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        leftMotorFore.setMaxSpeed(encoderClicksPerSecond);
+        rightMotorFore.setMaxSpeed(encoderClicksPerSecond);
+        leftMotorRear.setMaxSpeed(encoderClicksPerSecond);
+        rightMotorRear.setMaxSpeed(encoderClicksPerSecond);
+        shootMotor1.setMaxSpeed(encoderClicksPerSecond);
+        shootMotor2.setMaxSpeed(encoderClicksPerSecond);
 
+        initGyro();
         // Define and initialize ALL installed servos.
         //leftClaw = hwMap.servo.get("left_hand");
         //rightClaw = hwMap.servo.get("right_hand");
