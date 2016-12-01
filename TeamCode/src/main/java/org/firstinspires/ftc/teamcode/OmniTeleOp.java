@@ -4,12 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-import static java.lang.Math.sqrt;
-import static java.lang.Math.toRadians;
-import static java.lang.Math.max;
+import static java.lang.Math.*;
 
 /**
  * Created by Ethan on 10/2/2016.
@@ -26,9 +21,22 @@ public class OmniTeleOp extends OpMode {
         robot.init(hardwareMap);
     }
 
+    private static double highShootSpeed = 0.60;
+    private static double midHighShootSpeed = 0.45;
+    private static double midLowShootSpeed = 0.30;
+    private static double lowShootSpeed = 0.15;
     private boolean aLatched = false;
     private boolean shoot = false;
-    private double shootSpeed = 0.90;
+    private double shootSpeed = highShootSpeed;
+    private double driverAngle = 0.0;
+
+    @Override
+    public void start()
+    {
+        // Executes when start is pressed before loop starts getting called
+        // Might want to reset the Gyro here.
+        robot.resetGyro();
+    }
 
     @Override
     public void loop() {
@@ -36,58 +44,40 @@ public class OmniTeleOp extends OpMode {
         //right joystick is for rotation
         double yPower;
         double xPower;
-        double spinright;
+        double spin;
 
         boolean arm = gamepad2.x;
         boolean armReverse = gamepad2.b;
         boolean aPressed = gamepad2.a;
 
-        yPower = gamepad1.left_stick_y;
+        yPower = -gamepad1.left_stick_y;
         xPower = gamepad1.left_stick_x;
-        spinright = gamepad1.right_stick_x * .2;
+        spin = gamepad1.right_stick_x * 0.2;
 
         boolean leftSpeed = gamepad2.dpad_left;
         boolean upSpeed = gamepad2.dpad_up;
         boolean downSpeed = gamepad2.dpad_down;
         boolean rightSpeed = gamepad2.dpad_right;
 
-        double leftFrontAngle = toRadians(45.0);
-        double rightFrontAngle = toRadians(135.0);
-        double leftRearAngle = toRadians(-45.0);
-        double rightRearAngle = toRadians(-135.0);
-
-        double LFpower = (xPower * cos(leftFrontAngle) + yPower * sin(leftFrontAngle));
-        double LRpower = (xPower * cos(leftRearAngle) + yPower * sin(leftRearAngle));
-        double RFpower = (xPower * cos(rightFrontAngle) + yPower * sin(rightFrontAngle));
-        double RRpower = (xPower * cos(rightRearAngle) + yPower * sin(rightRearAngle));
-
-          /*double max = max(max(LFpower, LRpower),
-                         max(RFpower, RRpower));
-
-        LFpower /= max;
-        RFpower /= max;
-        RFpower /= max;
-        RRpower /= max;    */
-
-        if(abs(yPower) > .1 || abs(xPower) > .1 || abs(spinright) > .02) {
-
-            robot.leftMotorFore.setPower(LFpower/sqrt(2) + spinright);
-            robot.rightMotorFore.setPower(RFpower/sqrt(2) - spinright);
-            robot.leftMotorRear.setPower(LRpower/sqrt(2) - spinright);
-            robot.rightMotorRear.setPower(RRpower/sqrt(2) + spinright);
-            /*telemetry.addData("Left Fore Enc: ", robot.leftMotorFore.getCurrentPosition());
-            telemetry.addData("Left Rear Enc: ", robot.leftMotorRear.getCurrentPosition());
-            telemetry.addData("Right Fore Enc: ", robot.rightMotorFore.getCurrentPosition());
-            telemetry.addData("Right Rear Enc: ", robot.rightMotorRear.getCurrentPosition());*/
-
-        }
-        else
+        if(gamepad1.x)
         {
-            robot.leftMotorFore.setPower(0);
-            robot.rightMotorFore.setPower(0);
-            robot.leftMotorRear.setPower(0);
-            robot.rightMotorRear.setPower(0);
+            // The driver presses X, then uses the left joystick to say what angle the robot
+            // is aiming.  This will calculate the values as long as X is pressed, and will
+            // not drive the robot using the left stick.  Once X is released, it will use the
+            // final calculated angle and drive with the left stick.  Button should be released
+            // before stick.
+            driverAngle = toDegrees(atan2(xPower, yPower));
+            xPower = 0.0;
+            yPower = 0.0;
+            spin = 0.0;
         }
+
+        robot.drive(xPower, yPower, spin, driverAngle);
+
+        /*telemetry.addData("Left Fore Enc: ", robot.leftMotorFore.getCurrentPosition());
+        telemetry.addData("Left Rear Enc: ", robot.leftMotorRear.getCurrentPosition());
+        telemetry.addData("Right Fore Enc: ", robot.rightMotorFore.getCurrentPosition());
+        telemetry.addData("Right Rear Enc: ", robot.rightMotorRear.getCurrentPosition());*/
         //arm
         if (arm) {
             robot.armMotor.setPower(.75);
@@ -115,13 +105,13 @@ public class OmniTeleOp extends OpMode {
         }
 
         if (leftSpeed) {
-            shootSpeed = .15;
+            shootSpeed = lowShootSpeed;
         } else if (upSpeed) {
-            shootSpeed = .6;
+            shootSpeed = highShootSpeed;
         } else if (rightSpeed) {
-            shootSpeed = .45;
+            shootSpeed = midHighShootSpeed;
         } else if (downSpeed) {
-            shootSpeed = .3;
+            shootSpeed = midLowShootSpeed;
         }
 
         if(shoot) {
@@ -135,7 +125,7 @@ public class OmniTeleOp extends OpMode {
 
         telemetry.addData("Y Power: ", yPower);
         telemetry.addData("X Power: ", xPower);
-        telemetry.addData("spinright: ", spinright);
+        telemetry.addData("spin: ", spin);
         telemetry.addData("arm: ", arm);
         telemetry.addData("LeftMotorFore: ", robot.leftMotorFore.getPower());
         telemetry.addData("rightMotorFore: ", robot.rightMotorFore.getPower());
