@@ -16,8 +16,8 @@ public class OmniAutoClass extends LinearOpMode {
 
     private double myWheelSize;
     private double myMotorRatio;
-    private static final double encoderClicksPerRev = 140 * 4;
-    private static double clicksPerInch = (encoderClicksPerRev * 20) / (Math.PI * 4);
+    private static final double encoderClicksPerRev = 560;
+    private static double clicksPerInch = encoderClicksPerRev / (Math.PI * 4);
 
     /*
      * Sets up the parameters of the robot to use in our functions
@@ -29,10 +29,7 @@ public class OmniAutoClass extends LinearOpMode {
         robot.leftMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.rightMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.rightMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.leftMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.leftMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.init(hardwareMap);
 
         myWheelSize = newWheelSize;
         myMotorRatio = newMotorRatio;
@@ -62,17 +59,23 @@ public class OmniAutoClass extends LinearOpMode {
             telemetry.addLine(myTelemetry);
             telemetry.addData("Setting Power: ", speed);
             telemetry.addData("Sleep Time: ", sleepTime);
-            robot.leftMotorFore.setPower(speed);
-            robot.rightMotorFore.setPower(-speed);
-            robot.leftMotorRear.setPower(speed);
-            robot.rightMotorRear.setPower(-speed);
+
+            // Since this is a driveForward function, the Y Axis is the only important axis
+            robot.drive(0.0, speed, 0.0, 0.0);
+//            robot.leftMotorFore.setPower(speed);
+//            robot.rightMotorFore.setPower(-speed);
+//            robot.leftMotorRear.setPower(speed);
+//            robot.rightMotorRear.setPower(-speed);
             updateTelemetry(telemetry);
 
             position = robot.leftMotorRear.getCurrentPosition();
-            try {
-                sleep(50);
-            } catch (InterruptedException e) {}
+            sleep(50);
             sleepTime += 50;
+            if(isStopRequested())
+            {
+                // If stop has been requested, break out of the while loop.
+                break;
+            }
         } while ((position < clicksForDistance) && (sleepTime < maxTime));
 
         robot.leftMotorFore.setPower(0);
@@ -91,8 +94,7 @@ public class OmniAutoClass extends LinearOpMode {
         robot.shootMotor2.setPower(speed);
 
         // Allow the shooter motors to come up to speed
-        try { sleep(200);
-        } catch (InterruptedException e) {}
+        sleep(200);
 
         // Lift the balls to the shooter
         robot.liftMotor.setPower(.75);
@@ -101,8 +103,7 @@ public class OmniAutoClass extends LinearOpMode {
         updateTelemetry(telemetry);
 
         // Let things happen
-        try { sleep(fireTime);
-        } catch (InterruptedException e) {}
+        sleep(fireTime);
 
         robot.shootMotor1.setPower(0);
         robot.shootMotor2.setPower(0);
