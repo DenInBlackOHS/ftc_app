@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -23,6 +25,7 @@ public class HardwareOmnibot
     public DcMotor shootMotor1 = null;
     public DcMotor shootMotor2 = null;
     public Servo buttonPush = null;
+    public ModernRoboticsI2cGyro robotGyro = null;
 
     // Might have to lower from max 2800
     public static final int encoderClicksPerSecond = 2800;
@@ -39,17 +42,20 @@ public class HardwareOmnibot
     public void initGyro()
     {
         // Init Gyro Code
+        robotGyro = hwMap.get(ModernRoboticsI2cGyro.class, "robot_gyro");
+        robotGyro.setI2cAddress(I2cAddr.create8bit(0x20));
     }
 
     public void resetGyro()
     {
         // Reset Gyro Code
+        robotGyro.calibrate();
     }
 
     public double readGyro()
     {
         // Read Gyro Code
-        return 0.0;
+        return (double)robotGyro.getHeading();
     }
 
     // xPower: -1.0 to 1.0 power in the X axis
