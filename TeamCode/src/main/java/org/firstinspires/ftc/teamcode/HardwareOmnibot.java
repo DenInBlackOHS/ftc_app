@@ -29,10 +29,10 @@ public class HardwareOmnibot
     public ModernRoboticsI2cGyro robotGyro = null;
 
     // Might have to lower from max 2800
-    public static final int encoderClicksPerSecond = 2800;
+    private static final int encoderClicksPerSecond = 2800;
 
     /* local OpMode members. */
-    HardwareMap hwMap  =  null;
+    private HardwareMap hwMap  =  null;
     //private ElapsedTime period  = new ElapsedTime();
 
     /* Constructor */
@@ -51,15 +51,20 @@ public class HardwareOmnibot
     {
         // Reset Gyro Code
         robotGyro.calibrate();
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e){}
+        while(!robotGyro.isCalibrating()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     public double readGyro()
     {
         // Read Gyro Code
-        return (double)robotGyro.getHeading();
+        double heading = (double)robotGyro.getHeading();
+        heading = abs(heading - 360.0);
+        return heading;
     }
 
     // xPower: -1.0 to 1.0 power in the X axis
@@ -68,7 +73,7 @@ public class HardwareOmnibot
     public void drive(double xPower, double yPower, double spin, double angleOffset)
     {
         // Read Gyro Angle Here
-        double reducedSpin = spin * 0.2;
+        double reducedSpin = spin * 0.4;
         double gyroAngle = readGyro() + angleOffset;
         double leftFrontAngle = toRadians(45.0 + gyroAngle);
         double rightFrontAngle = toRadians(315.0 + gyroAngle);
@@ -83,7 +88,7 @@ public class HardwareOmnibot
         {
             xPower = 0.0;
         }
-        if(abs(reducedSpin) < 0.02)
+        if(abs(reducedSpin) < 0.04)
         {
             reducedSpin = 0.0;
         }
@@ -123,10 +128,10 @@ public class HardwareOmnibot
         shootMotor2 = hwMap.dcMotor.get("Shoot2");
         buttonPush = hwMap.servo.get("ServoButton");
 
-        leftMotorFore.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        rightMotorFore.setDirection(DcMotor.Direction.FORWARD);// Set to FORWARD if using AndyMark motors
-        leftMotorRear.setDirection(DcMotor.Direction.FORWARD); // Set to FORWARD if using AndyMark motors
-        rightMotorRear.setDirection(DcMotor.Direction.FORWARD);// Set to REVERSE if using AndyMark motors
+        leftMotorFore.setDirection(DcMotor.Direction.REVERSE); // Set to REVERSE if using AndyMark motors
+        rightMotorFore.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
+        leftMotorRear.setDirection(DcMotor.Direction.REVERSE); // Set to FORWARD if using AndyMark motors
+        rightMotorRear.setDirection(DcMotor.Direction.REVERSE);// Set to REVERSE if using AndyMark motors
 
         armMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
         liftMotor.setDirection(DcMotor.Direction.FORWARD);// Set to FORWARD if using AndyMark motors
