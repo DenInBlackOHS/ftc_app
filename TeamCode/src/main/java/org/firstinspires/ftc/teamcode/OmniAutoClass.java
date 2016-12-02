@@ -25,11 +25,15 @@ public class OmniAutoClass extends LinearOpMode {
      * wheelSize = Diameter of the wheel in inches
      */
     public void setupRobotParameters(double newWheelSize, double newMotorRatio) {
+        robot.init(hardwareMap);
         robot.leftMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.leftMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.rightMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.rightMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.init(hardwareMap);
+        robot.leftMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rightMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rightMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         myWheelSize = newWheelSize;
         myMotorRatio = newMotorRatio;
@@ -44,17 +48,8 @@ public class OmniAutoClass extends LinearOpMode {
         int position = robot.leftMotorRear.getCurrentPosition();
         int clicksForDistance = position + (int) (distance * clicksPerInch);
 
-        /*robot.leftMotorFore.setTargetPosition(clicksForDistance);
-        robot.leftMotorRear.setTargetPosition(clicksForDistance);
-        robot.rightMotorFore.setTargetPosition(clicksForDistance);
-        robot.rightMotorRear.setTargetPosition(clicksForDistance);
-
-        robot.leftMotorFore.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.leftMotorRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.rightMotorFore.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.rightMotorRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);*/
-
-        do {
+        while ((position < clicksForDistance) && (sleepTime < maxTime))
+        {
             String myTelemetry = "Current Encoder: " + position + " Destination Encoder: " + clicksForDistance;
             telemetry.addLine(myTelemetry);
             telemetry.addData("Setting Power: ", speed);
@@ -62,21 +57,116 @@ public class OmniAutoClass extends LinearOpMode {
 
             // Since this is a driveForward function, the Y Axis is the only important axis
             robot.drive(0.0, speed, 0.0, 0.0);
-//            robot.leftMotorFore.setPower(speed);
-//            robot.rightMotorFore.setPower(-speed);
-//            robot.leftMotorRear.setPower(speed);
-//            robot.rightMotorRear.setPower(-speed);
             updateTelemetry(telemetry);
 
-            position = robot.leftMotorRear.getCurrentPosition();
             sleep(50);
             sleepTime += 50;
+            position = robot.leftMotorRear.getCurrentPosition();
+            if (isStopRequested()) {
+                // If stop has been requested, break out of the while loop.
+                break;
+            }
+        }
+
+        robot.leftMotorFore.setPower(0);
+        robot.rightMotorFore.setPower(0);
+        robot.leftMotorRear.setPower(0);
+        robot.rightMotorRear.setPower(0);
+    }
+
+    public void driveForwardOnHeading(double speed, double distance, int maxTime) {
+
+        int sleepTime = 0;
+        int position = robot.leftMotorRear.getCurrentPosition();
+        int clicksForDistance = position + (int) (distance * clicksPerInch);
+        double gyroReading = robot.readGyro();
+        double holdAngle = gyroReading;
+        double deltaAngle = 0.0;
+        final double SAME_ANGLE = 2;
+        final double ROTATE_SPEED = 0.1;
+        double rotateSpeed = 0.0;
+
+        while ((position < clicksForDistance) && (sleepTime < maxTime))
+        {
+            String myTelemetry = "Current Encoder: " + position + " Destination Encoder: " + clicksForDistance;
+            telemetry.addLine(myTelemetry);
+            telemetry.addData("Setting Power: ", speed);
+            telemetry.addData("Sleep Time: ", sleepTime);
+
+            gyroReading = robot.readGyro();
+            deltaAngle = gyroReading - holdAngle;
+
+            if(Math.abs(deltaAngle) > SAME_ANGLE)
+            {
+                if(deltaAngle > 0.0)
+                {
+                    rotateSpeed = ROTATE_SPEED;
+                }
+                else
+                {
+                    rotateSpeed = - ROTATE_SPEED;
+                }
+            }
+            else
+            {
+                rotateSpeed = 0.0;
+            }
+            // Since this is a driveForward function, the Y Axis is the only important axis
+            robot.drive(0.0, speed, rotateSpeed, 0.0);
+            updateTelemetry(telemetry);
+
+            sleep(50);
+            sleepTime += 50;
+            position = robot.leftMotorRear.getCurrentPosition();
+            if (isStopRequested()) {
+                // If stop has been requested, break out of the while loop.
+                break;
+            }
+        }
+
+        robot.leftMotorFore.setPower(0);
+        robot.rightMotorFore.setPower(0);
+        robot.leftMotorRear.setPower(0);
+        robot.rightMotorRear.setPower(0);
+    }
+
+    public void rotateRobot(double speed, double angle, int maxTime) {
+
+        int sleepTime = 0;
+        double gyroReading = robot.readGyro();
+        double deltaAngle = gyroReading - angle;
+        final double SAME_ANGLE = 2;
+        double rotateSpeed = 0.0;
+
+        while (Math.abs(deltaAngle) > SAME_ANGLE && (sleepTime < maxTime)) {
+            String myTelemetry = "Current Angle: " + gyroReading + " Destination Angle: " + angle;
+            telemetry.addLine(myTelemetry);
+            telemetry.addData("Sleep Time: ", sleepTime);
+
+            if(deltaAngle > 0.0)
+            {
+                // Positive angle, need to rotate right
+                rotateSpeed = speed;
+            }
+            else
+            {
+                // Negative angle, need to rotate left;
+                rotateSpeed = - speed;
+            }
+            telemetry.addData("Rotate Speed: ", rotateSpeed);
+            robot.drive(0.0, 0.0, rotateSpeed, 0.0);
+            updateTelemetry(telemetry);
+
+            sleep(50);
+            sleepTime += 50;
+            gyroReading = robot.readGyro();
+            deltaAngle = gyroReading - angle;
             if(isStopRequested())
             {
                 // If stop has been requested, break out of the while loop.
                 break;
             }
-        } while ((position < clicksForDistance) && (sleepTime < maxTime));
+        }
 
         robot.leftMotorFore.setPower(0);
         robot.rightMotorFore.setPower(0);
