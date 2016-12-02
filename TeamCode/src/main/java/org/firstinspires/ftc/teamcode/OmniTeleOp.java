@@ -50,9 +50,9 @@ public class OmniTeleOp extends OpMode {
         boolean armReverse = gamepad2.b;
         boolean aPressed = gamepad2.a;
 
-        yPower = -gamepad1.left_stick_y;
+        yPower = gamepad1.left_stick_y;
         xPower = gamepad1.left_stick_x;
-        spin = gamepad1.right_stick_x * 0.2;
+        spin = -gamepad1.right_stick_x;
 
         boolean leftSpeed = gamepad2.dpad_left;
         boolean upSpeed = gamepad2.dpad_up;
@@ -128,9 +128,15 @@ public class OmniTeleOp extends OpMode {
         telemetry.addData("spin: ", spin);
         telemetry.addData("arm: ", arm);
         telemetry.addData("LeftMotorFore: ", robot.leftMotorFore.getPower());
+        telemetry.addData("LeftMotorForeEnc: ", robot.leftMotorFore.getCurrentPosition());
         telemetry.addData("rightMotorFore: ", robot.rightMotorFore.getPower());
+        telemetry.addData("rightMotorForeEnc: ", robot.rightMotorFore.getCurrentPosition());
         telemetry.addData("rightMotorRear: ", robot.rightMotorRear.getPower());
+        telemetry.addData("rightMotorRearEnc: ", robot.rightMotorRear.getCurrentPosition());
         telemetry.addData("leftMotorRear: ", robot.leftMotorRear.getPower());
+        telemetry.addData("leftMotorRearEnc: ", robot.leftMotorRear.getCurrentPosition());
+        telemetry.addData("Offset Angle: ", driverAngle);
+        telemetry.addData("Gyro Angle: ", robot.readGyro());
         updateTelemetry(telemetry);
     }
 }

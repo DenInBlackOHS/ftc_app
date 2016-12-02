@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import java.lang.Thread;
 
 import static java.lang.Math.*;
 
@@ -50,6 +51,9 @@ public class HardwareOmnibot
     {
         // Reset Gyro Code
         robotGyro.calibrate();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e){}
     }
 
     public double readGyro()
@@ -67,9 +71,9 @@ public class HardwareOmnibot
         double reducedSpin = spin * 0.2;
         double gyroAngle = readGyro() + angleOffset;
         double leftFrontAngle = toRadians(45.0 + gyroAngle);
-        double rightFrontAngle = toRadians(-45.0 + gyroAngle);
+        double rightFrontAngle = toRadians(315.0 + gyroAngle);
         double leftRearAngle = toRadians(135.0 + gyroAngle);
-        double rightRearAngle = toRadians(-135.0 + gyroAngle);
+        double rightRearAngle = toRadians(225.0 + gyroAngle);
 
         if(abs(yPower) < 0.1)
         {
