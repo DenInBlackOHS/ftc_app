@@ -96,27 +96,30 @@ public class OmniTeleOp extends OpMode {
         boolean upSpeed = gamepad2.dpad_up;
         boolean downSpeed = gamepad2.dpad_down;
         boolean rightSpeed = gamepad2.dpad_right;
+        boolean motorTest = false;
 
-        if(gamepad1.x)
-        {
-            // The driver presses X, then uses the left joystick to say what angle the robot
-            // is aiming.  This will calculate the values as long as X is pressed, and will
-            // not drive the robot using the left stick.  Once X is released, it will use the
-            // final calculated angle and drive with the left stick.  Button should be released
-            // before stick.  The default behavior of atan2 is 0 to -180 on Y Axis CCW, and 0 to
-            // 180 CW.  This code normalizes that to 0 to 360 CCW from the Y Axis
-            driverAngle = - toDegrees(atan2(xPower, yPower));
-            if(driverAngle < 0)
-            {
-                driverAngle += 360;
-            }
-            xPower = 0.0;
-            yPower = 0.0;
-            spin = 0.0;
+        if(motorTest) {
+            motorTest(gamepad1.x, gamepad1.y, gamepad1.b, gamepad1.a);
         }
+        else {
+            if (gamepad1.x) {
+                // The driver presses X, then uses the left joystick to say what angle the robot
+                // is aiming.  This will calculate the values as long as X is pressed, and will
+                // not drive the robot using the left stick.  Once X is released, it will use the
+                // final calculated angle and drive with the left stick.  Button should be released
+                // before stick.  The default behavior of atan2 is 0 to -180 on Y Axis CCW, and 0 to
+                // 180 CW.  This code normalizes that to 0 to 360 CCW from the Y Axis
+                driverAngle = -toDegrees(atan2(xPower, yPower));
+                if (driverAngle < 0) {
+                    driverAngle += 360;
+                }
+                xPower = 0.0;
+                yPower = 0.0;
+                spin = 0.0;
+            }
 
-        robot.drive(xPower, yPower, spin, driverAngle);
-//        motorTest(gamepad1.x, gamepad1.y, gamepad1.b, gamepad1.a);
+            robot.drive(xPower, yPower, spin, driverAngle);
+        }
 
         //arm
         if (arm) {
@@ -158,6 +161,9 @@ public class OmniTeleOp extends OpMode {
             robot.shootMotor2.setPower(0);
         }
 
+        telemetry.addData("Red Detected: ", robot.colorSensor.red());
+        telemetry.addData("Blue Detected: ", robot.colorSensor.blue());
+        telemetry.addData("ODS Detected: ", robot.readOds());
         telemetry.addData("dpad_left: ", gamepad2.dpad_left);
         telemetry.addData("dpad_up: ", gamepad2.dpad_up);
         telemetry.addData("dpad_right: ", gamepad2.dpad_right);
