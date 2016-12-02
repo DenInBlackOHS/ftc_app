@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsAnalogOpticalDistanceSensor;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -27,6 +30,10 @@ public class HardwareOmnibot
     public DcMotor shootMotor2 = null;
     public Servo buttonPush = null;
     public ModernRoboticsI2cGyro robotGyro = null;
+    public ModernRoboticsAnalogOpticalDistanceSensor ods1 = null;
+    public double ambientLight = 0;
+    public ColorSensor colorSensor = null;
+    public static int MIN_COLOR_VALUE = 2;
 
     // Might have to lower from max 2800
     private static final int encoderClicksPerSecond = 2800;
@@ -38,6 +45,23 @@ public class HardwareOmnibot
     /* Constructor */
     public HardwareOmnibot(){
 
+    }
+
+    public void initColorSensor()
+    {
+        colorSensor = hwMap.colorSensor.get("color_sensor");
+        colorSensor.enableLed(false);
+    }
+
+    public void initOds()
+    {
+        ods1 = hwMap.get(ModernRoboticsAnalogOpticalDistanceSensor.class, "ods1");
+        ambientLight = ods1.getLightDetected();
+    }
+
+    public double readOds()
+    {
+        return ods1.getLightDetected();
     }
 
     public void initGyro()
@@ -112,6 +136,23 @@ public class HardwareOmnibot
         rightMotorRear.setPower(RRpower);
     }
 
+    public void resetDriveEncoders()
+    {
+        leftMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+        }
+
+        leftMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {
         // Save reference to Hardware map
@@ -166,6 +207,8 @@ public class HardwareOmnibot
         shootMotor2.setMaxSpeed(encoderClicksPerSecond);
 
         initGyro();
+        initOds();
+        initColorSensor();
         // Define and initialize ALL installed servos.
         //leftClaw = hwMap.servo.get("left_hand");
         //rightClaw = hwMap.servo.get("right_hand");
