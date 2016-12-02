@@ -14,7 +14,6 @@ public class OmniAuto extends OmniAutoClass {
     @Override
     public void runOpMode() throws InterruptedException{
 
-//        robot.init(hardwareMap);
         setupRobotParameters(4, 20);
         telemetry.addLine("Ready");
         updateTelemetry(telemetry);
@@ -23,7 +22,7 @@ public class OmniAuto extends OmniAutoClass {
         telemetry.addLine("Set");
         updateTelemetry(telemetry);
 
-        shoot(.35, 4000);
+        shoot(0.6, 4000);
 
         telemetry.addLine("Done Shooting");
         updateTelemetry(telemetry);
@@ -41,8 +40,10 @@ public class OmniAuto extends OmniAutoClass {
             return;
         }
         driveForward(-0.4, 72, 3000);
+        rotateRobot(0.3, 0.0, 3000);
+        driveForwardOnHeading(-0.4, 72, 3000);
+
         telemetry.addLine("Go");
         updateTelemetry(telemetry);
     }
-
 }
