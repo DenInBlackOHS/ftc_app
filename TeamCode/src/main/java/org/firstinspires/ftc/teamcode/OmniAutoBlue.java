@@ -75,7 +75,5 @@ public class OmniAutoBlue extends OmniAutoClass {
 
         telemetry.addLine("Go");
         updateTelemetry(telemetry);
-
-        endAuto();
     }
 }
