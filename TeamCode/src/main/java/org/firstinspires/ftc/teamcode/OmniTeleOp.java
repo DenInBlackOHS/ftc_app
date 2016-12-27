@@ -21,13 +21,9 @@ public class OmniTeleOp extends OpMode {
         robot.init(hardwareMap);
     }
 
-    private static double highShootSpeed = 0.80;
-    private static double midHighShootSpeed = 0.70;
-    private static double midLowShootSpeed = 0.60;
-    private static double lowShootSpeed = 0.50;
     private boolean aLatched = false;
     private boolean shoot = false;
-    private double shootSpeed = highShootSpeed;
+    private double shootSpeed = HardwareOmnibot.HIGH_SHOOT_SPEED;
     private double driverAngle = 0.0;
 
     // This function allows us to test the motors correspond to what we think they are
@@ -84,19 +80,14 @@ public class OmniTeleOp extends OpMode {
         double xPower;
         double spin;
 
-        boolean arm = gamepad2.x;
-        boolean armReverse = gamepad2.b;
+        boolean sweeper = gamepad2.x;
+        boolean liftReverse = gamepad2.b;
         boolean aPressed = gamepad2.a;
 
         yPower = -gamepad1.left_stick_y;
         xPower = gamepad1.left_stick_x;
         spin = gamepad1.right_stick_x;
-
-        boolean leftSpeed = gamepad2.dpad_left;
-        boolean upSpeed = gamepad2.dpad_up;
-        boolean downSpeed = gamepad2.dpad_down;
-        boolean rightSpeed = gamepad2.dpad_right;
-        boolean motorTest = false;
+        boolean motorTest = false ;
 
         if(motorTest) {
             motorTest(gamepad1.x, gamepad1.y, gamepad1.b, gamepad1.a);
@@ -113,6 +104,7 @@ public class OmniTeleOp extends OpMode {
                 if (driverAngle < 0) {
                     driverAngle += 360;
                 }
+                driverAngle -= robot.readGyro();
                 xPower = 0.0;
                 yPower = 0.0;
                 spin = 0.0;
@@ -121,15 +113,14 @@ public class OmniTeleOp extends OpMode {
             robot.drive(xPower, yPower, spin, driverAngle);
         }
 
-        //arm
-        if (arm) {
-            robot.armMotor.setPower(.75);
+        //sweeper
+        if (sweeper) {
+            robot.sweeperMotor.setPower(.75);
             robot.liftMotor.setPower(.75);
-        } else if (armReverse) {
-            robot.armMotor.setPower(-.75);
+        } else if (liftReverse) {
             robot.liftMotor.setPower(-.75);
         } else {
-            robot.armMotor.setPower(0);
+            robot.sweeperMotor.setPower(0);
             robot.liftMotor.setPower(0);
         }
 
@@ -144,13 +135,13 @@ public class OmniTeleOp extends OpMode {
         }
 
         if (gamepad2.dpad_left) {
-            shootSpeed = lowShootSpeed;
+            shootSpeed = HardwareOmnibot.LOW_SHOOT_SPEED;
         } else if (gamepad2.dpad_up) {
-            shootSpeed = highShootSpeed;
+            shootSpeed = HardwareOmnibot.HIGH_SHOOT_SPEED;
         } else if (gamepad2.dpad_right) {
-            shootSpeed = midHighShootSpeed;
+            shootSpeed = HardwareOmnibot.MID_HIGH_SHOOT_SPEED;
         } else if (gamepad2.dpad_down) {
-            shootSpeed = midLowShootSpeed;
+            shootSpeed = HardwareOmnibot.MID_LOW_SHOOT_SPEED;
         }
 
         if(shoot) {
@@ -176,7 +167,7 @@ public class OmniTeleOp extends OpMode {
         telemetry.addData("Y Power: ", yPower);
         telemetry.addData("X Power: ", xPower);
         telemetry.addData("spin: ", spin);
-        telemetry.addData("arm: ", arm);
+        telemetry.addData("sweeper: ", sweeper);
         telemetry.addData("LeftMotorFore: ", robot.leftMotorFore.getPower());
         telemetry.addData("LeftMotorForeEnc: ", robot.leftMotorFore.getCurrentPosition());
         telemetry.addData("rightMotorFore: ", robot.rightMotorFore.getPower());
