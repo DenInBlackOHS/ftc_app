@@ -1,15 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsAnalogOpticalDistanceSensor;
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import java.lang.Thread;
 
 import static java.lang.Math.*;
@@ -20,11 +17,17 @@ import static java.lang.Math.*;
 public class HardwareOmnibot
 {
     /* Public OpMode members. */
+    public final static double HIGH_SHOOT_SPEED = 0.95;
+    public final static double MID_HIGH_SHOOT_SPEED = 0.90;
+    public final static double MID_LOW_SHOOT_SPEED = 0.85;
+    public final static double LOW_SHOOT_SPEED = 0.80;
+    public final static double MAX_SPIN_RATE = 0.6;
+    public final static int MIN_COLOR_VALUE = 2;
     public DcMotor leftMotorFore = null;
     public DcMotor rightMotorFore = null;
     public DcMotor leftMotorRear = null;
     public DcMotor rightMotorRear = null;
-    public DcMotor armMotor = null;
+    public DcMotor sweeperMotor = null;
     public DcMotor liftMotor = null;
     public DcMotor shootMotor1 = null;
     public DcMotor shootMotor2 = null;
@@ -33,14 +36,12 @@ public class HardwareOmnibot
     public ModernRoboticsAnalogOpticalDistanceSensor ods1 = null;
     public double ambientLight = 0;
     public ColorSensor colorSensor = null;
-    public static int MIN_COLOR_VALUE = 2;
 
     // Might have to lower from max 2800
     private static final int encoderClicksPerSecond = 2800;
 
     /* local OpMode members. */
     private HardwareMap hwMap  =  null;
-    //private ElapsedTime period  = new ElapsedTime();
 
     /* Constructor */
     public HardwareOmnibot(){
@@ -97,7 +98,7 @@ public class HardwareOmnibot
     public void drive(double xPower, double yPower, double spin, double angleOffset)
     {
         // Read Gyro Angle Here
-        double reducedSpin = spin * 0.4;
+        double reducedSpin = spin * MAX_SPIN_RATE;
         double gyroAngle = readGyro() + angleOffset;
         double leftFrontAngle = toRadians(45.0 + gyroAngle);
         double rightFrontAngle = toRadians(315.0 + gyroAngle);
@@ -112,7 +113,7 @@ public class HardwareOmnibot
         {
             xPower = 0.0;
         }
-        if(abs(reducedSpin) < 0.04)
+        if(abs(spin) < MAX_SPIN_RATE)
         {
             reducedSpin = 0.0;
         }
@@ -138,14 +139,21 @@ public class HardwareOmnibot
 
     public void resetDriveEncoders()
     {
-        leftMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        int sleepTime = 0;
+        int encoderCount = leftMotorFore.getCurrentPosition();
+
         rightMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightMotorRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftMotorFore.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
+        while((encoderCount != 0) && (sleepTime < 1000)) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+            }
+            sleepTime += 10;
+            encoderCount = leftMotorFore.getCurrentPosition();
         }
 
         leftMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -163,40 +171,37 @@ public class HardwareOmnibot
         rightMotorFore  = hwMap.dcMotor.get("MotorRF");
         leftMotorRear = hwMap.dcMotor.get("MotorLR");
         rightMotorRear = hwMap.dcMotor.get("MotorRR");
-        armMotor = hwMap.dcMotor.get("ArmMotor");
+        sweeperMotor = hwMap.dcMotor.get("SweeperMotor");
         liftMotor = hwMap.dcMotor.get("LiftMotor");
         shootMotor1 = hwMap.dcMotor.get("Shoot1");
         shootMotor2 = hwMap.dcMotor.get("Shoot2");
         buttonPush = hwMap.servo.get("ServoButton");
 
-        leftMotorFore.setDirection(DcMotor.Direction.REVERSE); // Set to REVERSE if using AndyMark motors
-        rightMotorFore.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        leftMotorRear.setDirection(DcMotor.Direction.REVERSE); // Set to FORWARD if using AndyMark motors
-        rightMotorRear.setDirection(DcMotor.Direction.REVERSE);// Set to REVERSE if using AndyMark motors
+        leftMotorFore.setDirection(DcMotor.Direction.FORWARD);
+        rightMotorFore.setDirection(DcMotor.Direction.FORWARD);
+        leftMotorRear.setDirection(DcMotor.Direction.FORWARD);
+        rightMotorRear.setDirection(DcMotor.Direction.FORWARD);
 
-        armMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        liftMotor.setDirection(DcMotor.Direction.FORWARD);// Set to FORWARD if using AndyMark motors
-        shootMotor1.setDirection(DcMotor.Direction.FORWARD);// Set to FORWARD if using AndyMark motors
-        shootMotor2.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
+        sweeperMotor.setDirection(DcMotor.Direction.REVERSE);
+        liftMotor.setDirection(DcMotor.Direction.FORWARD);
+        shootMotor1.setDirection(DcMotor.Direction.FORWARD);
+        shootMotor2.setDirection(DcMotor.Direction.REVERSE);
 
         // Set all motors to zero power
         leftMotorFore.setPower(0);
         rightMotorFore.setPower(0);
         leftMotorRear.setPower(0);
         rightMotorRear.setPower(0);
-        armMotor.setPower(0);
+        sweeperMotor.setPower(0);
         liftMotor.setPower(0);
         shootMotor1.setPower(0);
         shootMotor2.setPower(0);
 
-        leftMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightMotorFore.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightMotorRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        resetDriveEncoders();
         shootMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        sweeperMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         liftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         leftMotorFore.setMaxSpeed(encoderClicksPerSecond);
@@ -209,11 +214,6 @@ public class HardwareOmnibot
         initGyro();
         initOds();
         initColorSensor();
-        // Define and initialize ALL installed servos.
-        //leftClaw = hwMap.servo.get("left_hand");
-        //rightClaw = hwMap.servo.get("right_hand");
-        //leftClaw.setPosition(MID_SERVO);
-        //rightClaw.setPosition(MID_SERVO);
     }
 
     /***

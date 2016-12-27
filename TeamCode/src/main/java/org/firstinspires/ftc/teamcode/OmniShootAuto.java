@@ -19,6 +19,6 @@ public class OmniShootAuto extends OmniAutoClass {
 
         waitForStart();
 
-        shoot(.35, 4000);
+        shoot(HardwareOmnibot.HIGH_SHOOT_SPEED, 4000);
     }
 }
