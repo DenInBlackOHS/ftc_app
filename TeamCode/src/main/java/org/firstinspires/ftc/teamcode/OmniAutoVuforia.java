@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode;
-
-
+import android.speech.tts.TextToSpeech;
+import java.util.Locale;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
-
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -22,75 +22,117 @@ import java.util.List;
  * Created by Ethan on 10/30/2016.
  */
 
-@Autonomous(name="Omni: Auto Vuforia", group ="Auto")
-
+@TeleOp(name="Omni: Auto Vuforia", group ="TeleOp")
 public class OmniAutoVuforia extends OmniAutoClass {
     public static final String TAG = "Vuforia Omni Autonomous";
-    OpenGLMatrix lastLocation = null;
+    private OpenGLMatrix lastLocation = null;
+    private OpenGLMatrix lastTargetLocation = null;
+    private TextToSpeech textToSpeech = null;
+    private String targetObtained = "";
     /**
      * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
      * localization engine.
      */
-    VuforiaLocalizer vuforia;
+    private VuforiaLocalizer vuforia;
 
     @Override
     public void runOpMode() throws InterruptedException{
+        textToSpeech = new TextToSpeech(
+                hardwareMap.appContext,
+                new TextToSpeech.OnInitListener()
+                {
+                    @Override
+                    public void onInit(int status)
+                    {
+                        if (status != TextToSpeech.ERROR)
+                        {
+                            textToSpeech.setLanguage(Locale.US);
+                        }
+                    }
+                });
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(com.qualcomm.ftcrobotcontroller.R.id.cameraMonitorViewId);
         parameters.vuforiaLicenseKey = "ATaHrPr/////AAAAGYhG118G0EZgjFy6T7Snt3otqlgNSultuXDM66X1x1QK3ov5GUJcqL/9RTkdWkDlZDRxBKTAWm/szD7VmJteuQd2WfAk1t8qraapAsr2b4H5k5r4IpIO0UZghwNqhUqfZnCYl3e9tmmuocgZlfLXt4Xw+IAGxZ5e9MaQLR5lTv9/aFO1/CnH9/8jvnSq5NGeLrCHA6BtvqS30sAv7NYX8gz79MHaNiGZvyrUXZslbp2HHkehCocBbc080NrnYCouuUCqIbaMFl4ei8/ViSvdvtJDks4ox5KynBth4HaLHYpYkK3T2XJ1dBab6KfrWn6dm8ug7tfHTy68wLqWev7IWB0oPcqGOY+bZiz343VteHzk";
         parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
         this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
 
         VuforiaTrackables allTargets = this.vuforia.loadTrackablesFromAsset("FTC_2016-17");
-        VuforiaTrackable redTarget1 = allTargets.get(0);
-        redTarget1.setName("RedTarget1");  // ???
-        VuforiaTrackable redTarget2 = allTargets.get(1);
-        redTarget1.setName("RedTarget2");  // ???
 
-        VuforiaTrackable blueTarget1  = allTargets.get(2);
-        blueTarget1.setName("BlueTarget1");  // ???
+        VuforiaTrackable redTarget1 = allTargets.get(3);
+        redTarget1.setName("Gears"); // Gears
+        VuforiaTrackable redTarget2 = allTargets.get(1);
+        redTarget2.setName("Tools");  // Tools
+
+        VuforiaTrackable blueTarget1  = allTargets.get(0);
+        blueTarget1.setName("Wheels");  // Wheels
         VuforiaTrackable blueTarget2  = allTargets.get(2);
-        blueTarget2.setName("BlueTarget2");  // ???
+        blueTarget2.setName("Legos");  // Legos
 
         /** For convenience, gather together all the trackable objects in one easily-iterable collection */
         List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
         allTrackables.addAll(allTargets);
 
-        float mmPerInch        = 25.4f;
+        float mmPerInch = OmniAutoClass.MM_PER_INCH;
         float mmBotWidth       = 18 * mmPerInch;            // ... or whatever is right for your robot
         float mmFTCFieldWidth  = (12*12 - 2) * mmPerInch;   // the FTC field is ~11'10" center-to-center of the glass panels
 
        /*
-        * To place the Stones Target on the Red Audience wall:
+        * To place the Gears Target on the Red Audience wall:
         * - First we rotate it 90 around the field's X axis to flip it upright
         * - Then we rotate it  90 around the field's Z access to face it away from the audience.
         * - Finally, we translate it back along the X axis towards the red audience wall.
         */
-        OpenGLMatrix redTargetLocationOnField = OpenGLMatrix
+        // Gears
+        OpenGLMatrix redTarget1LocationOnField = OpenGLMatrix
                 /* Then we translate the target off to the RED WALL. Our translation here
                 is a negative translation in X.*/
-                .translation(-mmFTCFieldWidth/2, 0, 0)
+                .translation(-mmFTCFieldWidth/2, -12*mmPerInch, 0)
                 .multiplied(Orientation.getRotationMatrix(
                         /* First, in the fixed (field) coordinate system, we rotate 90deg in X, then 90 in Z */
                         AxesReference.EXTRINSIC, AxesOrder.XZX,
                         AngleUnit.DEGREES, 90, 90, 0));
-        redTarget1.setLocation(redTargetLocationOnField);
-        RobotLog.ii(TAG, "Red Target=%s", format(redTargetLocationOnField));
+        redTarget1.setLocation(redTarget1LocationOnField);
+        RobotLog.ii(TAG, "Red Target1 Gears=%s", format(redTarget1LocationOnField));
+
+        // Tools
+        OpenGLMatrix redTarget2LocationOnField = OpenGLMatrix
+                /* Then we translate the target off to the RED WALL. Our translation here
+                is a negative translation in X.*/
+                .translation(-mmFTCFieldWidth/2, 36*mmPerInch, 0)
+                .multiplied(Orientation.getRotationMatrix(
+                        /* First, in the fixed (field) coordinate system, we rotate 90deg in X, then 90 in Z */
+                        AxesReference.EXTRINSIC, AxesOrder.XZX,
+                        AngleUnit.DEGREES, 90, 90, 0));
+        redTarget2.setLocation(redTarget2LocationOnField);
+        RobotLog.ii(TAG, "Red Target2 Tools=%s", format(redTarget2LocationOnField));
 
        /*
-        * To place the Stones Target on the Blue Audience wall:
+        * To place the Wheels Target on the Blue Audience wall:
         * - First we rotate it 90 around the field's X axis to flip it upright
         * - Finally, we translate it along the Y axis towards the blue audience wall.
         */
-        OpenGLMatrix blueTargetLocationOnField = OpenGLMatrix
+        // Wheels
+        OpenGLMatrix blueTarget1LocationOnField = OpenGLMatrix
                 /* Then we translate the target off to the Blue Audience wall.
                 Our translation here is a positive translation in Y.*/
-                .translation(0, mmFTCFieldWidth/2, 0)
+                .translation(12*mmPerInch, mmFTCFieldWidth/2, 0)
                 .multiplied(Orientation.getRotationMatrix(
                         /* First, in the fixed (field) coordinate system, we rotate 90deg in X */
                         AxesReference.EXTRINSIC, AxesOrder.XZX,
                         AngleUnit.DEGREES, 90, 0, 0));
-        blueTarget1.setLocation(blueTargetLocationOnField);
-        RobotLog.ii(TAG, "Blue Target=%s", format(blueTargetLocationOnField));
+        blueTarget1.setLocation(blueTarget1LocationOnField);
+        RobotLog.ii(TAG, "Blue Target1 Wheels=%s", format(blueTarget1LocationOnField));
+
+        // Legos
+        OpenGLMatrix blueTarget2LocationOnField = OpenGLMatrix
+                /* Then we translate the target off to the Blue Audience wall.
+                Our translation here is a positive translation in Y.*/
+                .translation(-36*mmPerInch, mmFTCFieldWidth/2, 0)
+                .multiplied(Orientation.getRotationMatrix(
+                        /* First, in the fixed (field) coordinate system, we rotate 90deg in X */
+                        AxesReference.EXTRINSIC, AxesOrder.XZX,
+                        AngleUnit.DEGREES, 90, 0, 0));
+        blueTarget2.setLocation(blueTarget2LocationOnField);
+        RobotLog.ii(TAG, "Blue Target2 Legos=%s", format(blueTarget2LocationOnField));
 
         /**
          * Create a transformation matrix describing where the phone is on the robot. Here, we
@@ -107,6 +149,7 @@ public class OmniAutoVuforia extends OmniAutoClass {
         OpenGLMatrix phoneLocationOnRobot = OpenGLMatrix
                 .translation(mmBotWidth/2,0,0)
                 .multiplied(Orientation.getRotationMatrix(
+                        // Does this denote the phone being in portrait mode?
                         AxesReference.EXTRINSIC, AxesOrder.YZY,
                         AngleUnit.DEGREES, -90, 0, 0));
         RobotLog.ii(TAG, "phone=%s", format(phoneLocationOnRobot));
@@ -118,6 +161,10 @@ public class OmniAutoVuforia extends OmniAutoClass {
          */
         ((VuforiaTrackableDefaultListener)redTarget1.getListener()).setPhoneInformation(phoneLocationOnRobot, parameters.cameraDirection);
         ((VuforiaTrackableDefaultListener)blueTarget1.getListener()).setPhoneInformation(phoneLocationOnRobot, parameters.cameraDirection);
+        ((VuforiaTrackableDefaultListener)redTarget2.getListener()).setPhoneInformation(phoneLocationOnRobot, parameters.cameraDirection);
+        ((VuforiaTrackableDefaultListener)blueTarget2.getListener()).setPhoneInformation(phoneLocationOnRobot, parameters.cameraDirection);
+
+        waitForStart();
 
         /** Start tracking the data sets we care about. */
         allTargets.activate();
@@ -132,9 +179,22 @@ public class OmniAutoVuforia extends OmniAutoClass {
                  */
                 telemetry.addData(trackable.getName(), ((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible() ? "Visible" : "Not Visible");    //
 
+                OpenGLMatrix targetLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getPose();
                 OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
                 if (robotLocationTransform != null) {
                     lastLocation = robotLocationTransform;
+                    if(!targetObtained.equals(trackable.getName())) {
+                        String sentence = "";
+                        if(!targetObtained.isEmpty()) {
+                            sentence = "We have lost objective " + targetObtained + ".  ";
+                        }
+                        targetObtained = trackable.getName();
+                        sentence += "Obtained objective " + targetObtained;
+                        textToSpeech.speak(sentence, TextToSpeech.QUEUE_FLUSH, null);
+                    }
+                }
+                if (targetLocationTransform != null) {
+                    lastTargetLocation = targetLocationTransform;
                 }
             }
             /**
@@ -143,40 +203,41 @@ public class OmniAutoVuforia extends OmniAutoClass {
             if (lastLocation != null) {
                 //  RobotLog.vv(TAG, "robot=%s", format(lastLocation));
                 telemetry.addData("Pos", format(lastLocation));
+                telemetry.addData("TargPos", format(lastTargetLocation));
             } else {
                 telemetry.addData("Pos", "Unknown");
+                telemetry.addData("TargPos", "Unknown");
             }
             telemetry.update();
         }
 
-        setupRobotParameters(4, 20);
-        telemetry.addLine("Ready");
         updateTelemetry(telemetry);
 
-        waitForStart();
-        telemetry.addLine("Set");
-        updateTelemetry(telemetry);
+        if (textToSpeech != null)
+        {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+//        shoot(.35, 4000);
 
-        shoot(.35, 4000);
-
-        telemetry.addLine("Done Shooting");
-        updateTelemetry(telemetry);
+//        telemetry.addLine("Done Shooting");
+//        updateTelemetry(telemetry);
 
         // Check to see if the program should exit
-        if(isStopRequested())
-        {
-            return;
-        }
-        sleep(6000);
+//        if(isStopRequested())
+//        {
+//            return;
+//        }
+//        sleep(6000);
 
         // Check to see if the program should exit
-        if(isStopRequested())
-        {
-            return;
-        }
-        driveForward(-0.4, 72, 3000);
-        telemetry.addLine("Go");
-        updateTelemetry(telemetry);
+//        if(isStopRequested())
+//        {
+//            return;
+//        }
+//        driveForward(-0.4, 72, 3000);
+//        telemetry.addLine("Go");
+//        updateTelemetry(telemetry);
     }
 
     /**
