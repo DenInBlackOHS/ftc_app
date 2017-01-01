@@ -19,6 +19,11 @@ public class OmniTeleOp extends OpMode {
     @Override
     public void init() {
         robot.init(hardwareMap);
+        // Turn off the unused sensors for teleop
+        robot.resetGyro();
+// TODO: Add back in when not testing sensors.
+//        robot.disableColorSensors();
+//        robot.disableRangeSensors();
     }
 
     private boolean aLatched = false;
@@ -69,7 +74,6 @@ public class OmniTeleOp extends OpMode {
     {
         // Executes when start is pressed before loop starts getting called
         // Might want to reset the Gyro here.
-        robot.resetGyro();
     }
 
     @Override
@@ -152,32 +156,31 @@ public class OmniTeleOp extends OpMode {
             robot.shootMotor2.setPower(0);
         }
 
-        telemetry.addData("Red Detected: ", robot.colorSensor.red());
-        telemetry.addData("Blue Detected: ", robot.colorSensor.blue());
-        telemetry.addData("ODS Detected: ", robot.readOds());
-        telemetry.addData("dpad_left: ", gamepad2.dpad_left);
-        telemetry.addData("dpad_up: ", gamepad2.dpad_up);
-        telemetry.addData("dpad_right: ", gamepad2.dpad_right);
-        telemetry.addData("dpad_down: ", gamepad2.dpad_down);
-        telemetry.addData("shoot Speed: ", shootSpeed);
+        telemetry.addData("Shoot Speed: ", shootSpeed);
         telemetry.addData("Shoot Motor1: ", robot.shootMotor1.getPower());
         telemetry.addData("Shoot Motor1 Enc: ", robot.shootMotor1.getCurrentPosition());
         telemetry.addData("Shoot Motor2: ", robot.shootMotor2.getPower());
         telemetry.addData("Shoot Motor2 Enc: ", robot.shootMotor1.getCurrentPosition());
         telemetry.addData("Y Power: ", yPower);
         telemetry.addData("X Power: ", xPower);
-        telemetry.addData("spin: ", spin);
-        telemetry.addData("sweeper: ", sweeper);
+        telemetry.addData("Spin: ", spin);
+        telemetry.addData("Sweeper: ", sweeper);
         telemetry.addData("LeftMotorFore: ", robot.leftMotorFore.getPower());
         telemetry.addData("LeftMotorForeEnc: ", robot.leftMotorFore.getCurrentPosition());
-        telemetry.addData("rightMotorFore: ", robot.rightMotorFore.getPower());
-        telemetry.addData("rightMotorForeEnc: ", robot.rightMotorFore.getCurrentPosition());
-        telemetry.addData("rightMotorRear: ", robot.rightMotorRear.getPower());
-        telemetry.addData("rightMotorRearEnc: ", robot.rightMotorRear.getCurrentPosition());
-        telemetry.addData("leftMotorRear: ", robot.leftMotorRear.getPower());
-        telemetry.addData("leftMotorRearEnc: ", robot.leftMotorRear.getCurrentPosition());
+        telemetry.addData("RightMotorFore: ", robot.rightMotorFore.getPower());
+        telemetry.addData("RightMotorForeEnc: ", robot.rightMotorFore.getCurrentPosition());
+        telemetry.addData("RightMotorRear: ", robot.rightMotorRear.getPower());
+        telemetry.addData("RightMotorRearEnc: ", robot.rightMotorRear.getCurrentPosition());
+        telemetry.addData("LeftMotorRear: ", robot.leftMotorRear.getPower());
+        telemetry.addData("LeftMotorRearEnc: ", robot.leftMotorRear.getCurrentPosition());
         telemetry.addData("Offset Angle: ", driverAngle);
         telemetry.addData("Gyro Angle: ", robot.readGyro());
+        telemetry.addData("Range Front: ", robot.readFrontRangeSensor());
+        telemetry.addData("Range Back: ", robot.readBackRangeSensor());
+        telemetry.addData("Color Red Front: ", robot.readRedFrontColorSensor());
+        telemetry.addData("Color Blue Front: ", robot.readBlueFrontColorSensor());
+        telemetry.addData("Color Red Back: ", robot.readRedBackColorSensor());
+        telemetry.addData("Color Blue Back: ", robot.readBlueBackColorSensor());
         updateTelemetry(telemetry);
     }
 }
