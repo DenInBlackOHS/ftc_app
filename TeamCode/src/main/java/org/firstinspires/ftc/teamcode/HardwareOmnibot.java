@@ -198,6 +198,7 @@ public class HardwareOmnibot
 
         rangeDeviceBack = (I2cDeviceSynch)hwMap.get(BACK_RANGE_SENSOR);
         rangeDeviceBack.setI2cAddress(backRangeAddress);
+        rangeDeviceBack.disengage();
         rangeSensorBack = new ModernRoboticsI2cRangeSensor(rangeDeviceBack);
         rangeSensorBack.setI2cAddress(backRangeAddress);
 
@@ -208,7 +209,7 @@ public class HardwareOmnibot
     {
         if(rangeSensorsDisabled) {
             rangeDeviceFront.engage();
-            rangeDeviceBack.engage();
+//            rangeDeviceBack.engage();
         }
         rangeSensorsDisabled = false;
     }
@@ -217,7 +218,7 @@ public class HardwareOmnibot
     {
         if (!rangeSensorsDisabled) {
             rangeDeviceFront.disengage();
-            rangeDeviceBack.disengage();
+//            rangeDeviceBack.disengage();
         }
         rangeSensorsDisabled = true;
     }
@@ -230,10 +231,12 @@ public class HardwareOmnibot
         return result;
     }
 
+    // Enabling both range sensors causes interference
+    // So this function is using the front sensor for now.
     public double readBackRangeSensor() {
         double result = 0.0;
         if(!rangeSensorsDisabled) {
-            result = rangeSensorBack.getDistance(DistanceUnit.MM);
+            result = rangeSensorFront.getDistance(DistanceUnit.MM);
         }
         return result;
     }
@@ -256,9 +259,9 @@ public class HardwareOmnibot
         gyro.setI2cAddress(I2cAddr.create8bit(0x20));
     }
 
-    public void resetGyro()
+    public void calibrateGyro()
     {
-        // Reset Gyro Code
+        // Calibrate Gyro Code
         gyro.calibrate();
         while(gyro.isCalibrating()) {
             try {
@@ -268,12 +271,24 @@ public class HardwareOmnibot
         }
     }
 
+    public void resetGyro()
+    {
+        // Reset Gyro Code
+        gyro.resetZAxisIntegrator();
+    }
+
     public double readGyro()
     {
         // Read Gyro Code
         double heading = (double)gyro.getHeading();
         heading = abs(heading - 360.0);
         return heading;
+    }
+
+    public void shooterSpeed(double shootSpeed)
+    {
+        shootMotor1.setPower(shootSpeed);
+        shootMotor2.setPower(shootSpeed);
     }
 
     // xPower: -1.0 to 1.0 power in the X axis

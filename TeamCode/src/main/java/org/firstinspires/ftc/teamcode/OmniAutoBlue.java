@@ -25,7 +25,7 @@ public class OmniAutoBlue extends OmniAutoClass {
         updateTelemetry(telemetry);
 
         //first, the robot will shoot.
-        shoot(HardwareOmnibot.MID_LOW_SHOOT_SPEED, 4000);
+        shoot(4000);
 
         telemetry.addLine("Done Shooting");
         updateTelemetry(telemetry);
