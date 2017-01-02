@@ -20,10 +20,9 @@ public class OmniTeleOp extends OpMode {
     public void init() {
         robot.init(hardwareMap);
         // Turn off the unused sensors for teleop
-        robot.resetGyro();
-// TODO: Add back in when not testing sensors.
-//        robot.disableColorSensors();
-//        robot.disableRangeSensors();
+        robot.calibrateGyro();
+        robot.disableColorSensors();
+        robot.disableRangeSensors();
     }
 
     private boolean aLatched = false;
@@ -104,6 +103,7 @@ public class OmniTeleOp extends OpMode {
                 // final calculated angle and drive with the left stick.  Button should be released
                 // before stick.  The default behavior of atan2 is 0 to -180 on Y Axis CCW, and 0 to
                 // 180 CW.  This code normalizes that to 0 to 360 CCW from the Y Axis
+                robot.resetGyro();
                 driverAngle = -toDegrees(atan2(xPower, yPower));
                 if (driverAngle < 0) {
                     driverAngle += 360;
@@ -149,11 +149,16 @@ public class OmniTeleOp extends OpMode {
         }
 
         if(shoot) {
-            robot.shootMotor1.setPower(shootSpeed);
-            robot.shootMotor2.setPower(shootSpeed);
+            robot.shooterSpeed(shootSpeed);
         } else {
-            robot.shootMotor1.setPower(0);
-            robot.shootMotor2.setPower(0);
+            if(gamepad2.y)
+            {
+                robot.shooterSpeed(-0.3);
+            }
+            else
+            {
+                robot.shooterSpeed(0.0);
+            }
         }
 
         telemetry.addData("Shoot Speed: ", shootSpeed);
