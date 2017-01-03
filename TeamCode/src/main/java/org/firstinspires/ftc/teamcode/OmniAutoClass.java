@@ -6,13 +6,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 /**
  * Created by Ethan on 10/23/2016.
  */
-public class OmniAutoClass extends LinearOpMode {
+public abstract class OmniAutoClass extends LinearOpMode {
 
     HardwareOmnibot robot = new HardwareOmnibot();
-
-    @Override
-    public void runOpMode() throws InterruptedException {
-    }
 
     // Default to 4" wheels
     private static double myWheelSize = 4.0;
@@ -26,11 +22,10 @@ public class OmniAutoClass extends LinearOpMode {
     private static double clicksPerInch = (myMotorRatio * encoderClicksPerRev) / (Math.PI * myWheelSize);
     public static final float MM_PER_INCH = 25.4f;
 
-
-    /*
-     * Sets up the parameters of the robot to use in our functions
+    /**
      *
-     * wheelSize = Diameter of the wheel in inches
+     * @param newWheelSize - The size of the wheels, used to calculate encoder clicks per inch
+     * @param newMotorRatio - The motor gearbox ratio, used to calculate encoder clicks per inch
      */
     public void setupRobotParameters(double newWheelSize, double newMotorRatio) {
         robot.init(hardwareMap);
@@ -53,36 +48,13 @@ public class OmniAutoClass extends LinearOpMode {
         robot.rightMotorRear.setPower(0);
     }
 
-    public void driveForward(double speed, double distance, int maxTime) {
-
-        int sleepTime = 0;
-        final int deltaSleep = 50;
-        int position = robot.leftMotorRear.getCurrentPosition();
-        int clicksForDistance = position + (int) (distance * clicksPerInch);
-
-        while ((position < clicksForDistance) && (sleepTime < maxTime))
-        {
-            String myTelemetry = "Current Encoder: " + position + " Destination Encoder: " + clicksForDistance;
-            telemetry.addLine(myTelemetry);
-            telemetry.addData("Setting Power: ", speed);
-            telemetry.addData("Sleep Time: ", sleepTime);
-
-            // Since this is a driveForward function, the Y Axis is the only important axis
-            robot.drive(0.0, speed, 0.0, 0.0);
-            updateTelemetry(telemetry);
-
-            sleep(deltaSleep);
-            sleepTime += deltaSleep;
-            position = robot.leftMotorRear.getCurrentPosition();
-            if (isStopRequested()) {
-                // If stop has been requested, break out of the while loop.
-                break;
-            }
-        }
-
-        allDriveStop();
-    }
-
+    /**
+     *
+     * @param position - The current encoder position
+     * @param destination - The desired encoder position
+     * @param speed - The speed of travel used to get direction
+     * @return - Boolean true we have reached destination, false we have not
+     */
     public boolean reachedClickPosition(int position, int destination, double speed)
     {
         boolean result = false;
@@ -101,8 +73,60 @@ public class OmniAutoClass extends LinearOpMode {
         return result;
     }
 
-    public void driveForwardOnHeading(double speed, double distance, int maxTime) {
+    /**
+     *
+     * @param speed - The driving power
+     * @param driveAngle - The angle of movement to drive the robot
+     * @param headingAngle - The heading angle to hold while driving
+     */
+    public void driveAtHeading(double speed, double driveAngle, double headingAngle)
+    {
+        double xPower = 0.0;
+        double yPower = 0.0;
+        double deltaAngle = 0.0;
+        final double SAME_ANGLE = 1;
+        final double ROTATE_SPEED = 0.1;
+        double rotateSpeed = 0.0;
+        double gyroReading = robot.readGyro();
+        deltaAngle = deltaAngle(headingAngle, gyroReading);
 
+        if(Math.abs(deltaAngle) > SAME_ANGLE)
+        {
+            if(deltaAngle > 0.0)
+            {
+                rotateSpeed = -ROTATE_SPEED;
+            }
+            else
+            {
+                rotateSpeed = ROTATE_SPEED;
+            }
+        }
+        else
+        {
+            rotateSpeed = 0.0;
+        }
+
+        xPower = speed * Math.sin(Math.toRadians(driveAngle));
+        yPower = speed * Math.cos(Math.toRadians(driveAngle));
+        telemetry.addData("Speed: ", speed);
+        telemetry.addData("Drive xPower: ", xPower);
+        telemetry.addData("Drive yPower: ", yPower);
+        telemetry.addData("Rotate Speed: ", rotateSpeed);
+        telemetry.addData("Gyro Reading: ", gyroReading);
+        telemetry.addData("Delta Angle: ", deltaAngle);
+        telemetry.addData("Drive Angle: ", driveAngle);
+        updateTelemetry(telemetry);
+        robot.drive(xPower, yPower, rotateSpeed, 0.0);
+    }
+
+    /**
+     *
+     * @param speed - Max speed to run robot
+     * @param distance - Desired distance to travel in inches
+     * @param maxTime - The time allowed before exiting without completing
+     */
+    public void driveForwardOnHeading(double speed, double distance, int maxTime)
+    {
         //temporary fix until we understand
         double correctedDistance = distance / 1.75;
 
@@ -118,11 +142,6 @@ public class OmniAutoClass extends LinearOpMode {
         }
 
         double gyroReading = robot.readGyro();
-        double holdAngle = gyroReading;
-        double deltaAngle = 0.0;
-        final double SAME_ANGLE = 2;
-        final double ROTATE_SPEED = 0.1;
-        double rotateSpeed = 0.0;
 
         while ((!reachedClickPosition(position, finalEncoderValue, speed) && (sleepTime < maxTime)))
         {
@@ -131,26 +150,8 @@ public class OmniAutoClass extends LinearOpMode {
             telemetry.addData("Setting Power: ", speed);
             telemetry.addData("Sleep Time: ", sleepTime);
 
-            gyroReading = robot.readGyro();
-            deltaAngle = gyroReading - holdAngle;
-
-            if(Math.abs(deltaAngle) > SAME_ANGLE)
-            {
-                if(deltaAngle > 0.0)
-                {
-                    rotateSpeed = ROTATE_SPEED;
-                }
-                else
-                {
-                    rotateSpeed = - ROTATE_SPEED;
-                }
-            }
-            else
-            {
-                rotateSpeed = 0.0;
-            }
             // Since this is a driveForward function, the Y Axis is the only important axis
-            robot.drive(0.0, speed, rotateSpeed, -gyroReading);
+            driveAtHeading(speed, 0.0, gyroReading);
             updateTelemetry(telemetry);
 
             sleep(deltaSleep);
@@ -165,66 +166,69 @@ public class OmniAutoClass extends LinearOpMode {
         allDriveStop();
     }
 
-    private double deltaAngle(double angle, double gyroReading)
+    /**
+     *
+     * @param destinationAngle - The target angle to reach, between 0.0 and 360.0
+     * @param gyroReading - The current angle of the robot
+     * @return The minumum angle to travel to get to the destination angle
+     */
+    private double deltaAngle(double destinationAngle, double gyroReading)
     {
-        double result = gyroReading - angle;
+        double result = 0.0;
+        double leftResult = 0.0;
+        double rightResult = 0.0;
 
-        if(result < 0.0)
+        if(gyroReading > destinationAngle)
         {
-            result += 360.0;
+            leftResult = gyroReading - destinationAngle;
+            rightResult = 360.0 - gyroReading + destinationAngle;
+        }
+        else
+        {
+            leftResult = gyroReading + 360.0 - destinationAngle;
+            rightResult = destinationAngle - gyroReading;
+        }
+
+        if(leftResult < rightResult)
+        {
+            result = -leftResult;
+        }
+        else
+        {
+            result = rightResult;
         }
 
         return result;
     }
 
-    public void rotateRobotToAngle(double speed, double angle, int maxTime) {
-        double gyroReading = robot.readGyro();
-        // Determine the delta angle, then call rotateRobot
-        double deltaAngle = angle - gyroReading;
-
-        rotateRobot(speed, deltaAngle, maxTime);
-    }
-
     /**
      *
-     * @param speed - Max speed to rotate
-     * @param angle - Angle in degrees to rotate.  Positive right, negative left
-     * @param maxTime - Timeout to quit trying
+     * @param speed - The maximum speed to rotate the robot
+     * @param targetAngle - The 0-360 degree angle to rotate the robot to
+     * @param maxTime - The time to allow before quiting
      */
-    public void rotateRobot(double speed, double angle, int maxTime) {
-
+    public void rotateRobotToAngle(double speed, double targetAngle, int maxTime) {
+        double gyroReading = robot.readGyro();
         int sleepTime = 0;
         final int deltaSleep = 50;
-        double gyroReading = robot.readGyro();
-        double targetAngle = gyroReading + angle;
         double angleRemaining = 0.0;
-        final double SAME_ANGLE = 5;
+        final double SAME_ANGLE = 1.0;
         double rotateSpeed = 0.0;
 
-        // We won't do circles with this function, just minimum rotation
-        while(targetAngle > 360.0)
-        {
-            targetAngle -= 360.0;
-        }
-        while(targetAngle < 0.0)
-        {
-            targetAngle += 360.0;
-        }
-
         angleRemaining = deltaAngle(targetAngle, gyroReading);
-        while (angleRemaining > SAME_ANGLE && (sleepTime < maxTime)) {
+        while (Math.abs(angleRemaining) > SAME_ANGLE && (sleepTime < maxTime)) {
             String myTelemetry = "Current Angle: " + gyroReading + " Destination Angle: " + targetAngle;
             telemetry.addLine(myTelemetry);
             telemetry.addData("Sleep Time: ", sleepTime);
 
-            if(angle > 0.0)
+            if(angleRemaining > 0.0)
             {
-                // Negative angle, need to rotate right
+                // Positive angle, need to rotate right
                 rotateSpeed = - controlledRotationAngle(angleRemaining, speed);
             }
             else
             {
-                // Positive angle, need to rotate left;
+                // Negative angle, need to rotate left;
                 rotateSpeed = controlledRotationAngle(angleRemaining, speed);
             }
             telemetry.addData("Rotate Speed: ", rotateSpeed);
@@ -245,6 +249,34 @@ public class OmniAutoClass extends LinearOpMode {
         allDriveStop();
     }
 
+    /**
+     *
+     * @param speed - Max speed to rotate
+     * @param angle - Angle in degrees to rotate.  Positive right, negative left
+     * @param maxTime - Timeout to quit trying
+     */
+    public void rotateRobot(double speed, double angle, int maxTime) {
+        double gyroReading = robot.readGyro();
+        double targetAngle = gyroReading + angle;
+
+        // We won't do circles with this function, just minimum rotation.
+        // Get the destination gyro angle
+        while(targetAngle > 360.0)
+        {
+            targetAngle -= 360.0;
+        }
+        while(targetAngle < 0.0)
+        {
+            targetAngle += 360.0;
+        }
+
+        rotateRobotToAngle(speed, targetAngle, maxTime);
+    }
+
+    /**
+     *
+     * @param fireTime - The time to allow the particles to be shot before stopping
+     */
     public void shoot(int fireTime) {
         int sleepTime = 0;
 
@@ -334,8 +366,8 @@ public class OmniAutoClass extends LinearOpMode {
      */
     private double controlledRotationAngle(double angleToTravel, double maxSpeed)
     {
-        final double fastAngle = 60.0;
-        final double mediumAngle = 45.0;
+        final double fastAngle = 30.0;
+        final double mediumAngle = 15.0;
         final double mediumDivider = 2.0;
         final double slowDivider = 4.0;
 
@@ -369,40 +401,31 @@ public class OmniAutoClass extends LinearOpMode {
         int sleepTime = 0;
         final int deltaSleep = 50;
         double maxSpeedAbs = Math.abs(maxSpeed);
-        double frontDistance = 0.0;
         double backDistance = 0.0;
-        double frontDelta = 0.0;
         double backDelta = 0.0;
-        double frontError = 0.0;
         double backError = 0.0;
-        double frontBackDiff = 0.0;
         double speed = 0.0;
-        double rotateSpeed = 0.0;
 
-        frontDistance = robot.readFrontRangeSensor();
         backDistance = robot.readBackRangeSensor();
-        frontDelta = frontDistance - distanceFromWallMm;
         backDelta = backDistance - distanceFromWallMm;
-        frontError = Math.abs(frontDelta);
         backError = Math.abs(backDelta);
-        frontBackDiff = Math.abs(frontDistance - backDistance);
 
-        while(((frontError > allowedDistanceError) || (backError > allowedDistanceError)) && (sleepTime < timeout))
+        while(((backError > allowedDistanceError)) && (sleepTime < timeout))
         {
-            String myTelemetry = "Front Distance: " + frontDistance + " Back Distance: " + backDistance;
+            String myTelemetry = " Back Distance: " + backDistance;
             telemetry.addLine(myTelemetry);
             telemetry.addData("Max Power: ", maxSpeedAbs);
             telemetry.addData("Sleep Time: ", sleepTime);
 
             // Calculate the linear driving
-            if((frontDistance < distanceFromWallMm) && (backDistance < distanceFromWallMm))
+            if(backDistance < distanceFromWallMm)
             {
                 // Drive away from wall
-                speed = controlledDeceleration((frontError + backError) / 2.0, maxSpeedAbs);
-            } else if ((frontDistance > distanceFromWallMm) && (backDistance > distanceFromWallMm))
+                speed = controlledDeceleration(backError, maxSpeedAbs);
+            } else if (backDistance > distanceFromWallMm)
             {
                 // Drive towards wall
-                speed = controlledDeceleration((frontError + backError) / 2.0, -maxSpeedAbs);
+                speed = controlledDeceleration(backError, -maxSpeedAbs);
             }
             else
             {
@@ -410,27 +433,8 @@ public class OmniAutoClass extends LinearOpMode {
                 speed = 0.0;
             }
 
-            // Calculate the rotational driving
-            if(frontBackDiff > allowedDistanceError)
-            {
-                if(frontDelta > 0.0)
-                {
-                    // Rotate CCW
-                    rotateSpeed = controlledRotationMm(frontBackDiff, 0.2);
-                }
-                else
-                {
-                    // Rotate CW
-                    rotateSpeed = controlledRotationMm(frontBackDiff, -0.2);
-                }
-            }
-            else
-            {
-                rotateSpeed = 0.0;
-            }
-
             // Drive in the X direction should be the same as driving left/right
-            robot.drive(speed, 0.0, rotateSpeed, 0.0);
+            driveAtHeading(speed, 90.0, 0.0);
             updateTelemetry(telemetry);
 
             // Let things happen
@@ -438,13 +442,9 @@ public class OmniAutoClass extends LinearOpMode {
             sleepTime += deltaSleep;
 
             // Get new readings
-            frontDistance = robot.readFrontRangeSensor();
             backDistance = robot.readBackRangeSensor();
-            frontDelta = frontDistance - distanceFromWallMm;
             backDelta = backDistance - distanceFromWallMm;
-            frontError = Math.abs(frontDelta);
             backError = Math.abs(backDelta);
-            frontBackDiff = Math.abs(frontDistance - backDistance);
 
             if (isStopRequested()) {
                 // If stop has been requested, break out of the while loop.
