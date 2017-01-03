@@ -180,7 +180,6 @@ public class OmniTeleOp extends OpMode {
         telemetry.addData("LeftMotorRearEnc: ", robot.leftMotorRear.getCurrentPosition());
         telemetry.addData("Offset Angle: ", driverAngle);
         telemetry.addData("Gyro Angle: ", robot.readGyro());
-        telemetry.addData("Range Front: ", robot.readFrontRangeSensor());
         telemetry.addData("Range Back: ", robot.readBackRangeSensor());
         telemetry.addData("Color Red Front: ", robot.readRedFrontColorSensor());
         telemetry.addData("Color Blue Front: ", robot.readBlueFrontColorSensor());

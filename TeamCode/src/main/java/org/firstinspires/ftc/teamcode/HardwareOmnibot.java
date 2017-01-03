@@ -38,7 +38,6 @@ public class HardwareOmnibot
     // Robot Controller Config Strings
     public final static String FRONT_COLOR_SENSOR = "front_color";
     public final static String BACK_COLOR_SENSOR = "back_color";
-    public final static String FRONT_RANGE_SENSOR = "front_range";
     public final static String BACK_RANGE_SENSOR = "back_range";
     public final static String GYRO = "gyro";
     public final static String FRONT_LEFT_MOTOR = "MotorLF";
@@ -76,11 +75,8 @@ public class HardwareOmnibot
     private boolean colorSensorsDisabled = false;
 
     // Code to allow disabling the color sensors for teleop
-    public ModernRoboticsI2cRangeSensor rangeSensorFront = null;
     public ModernRoboticsI2cRangeSensor rangeSensorBack = null;
-    private I2cAddr frontRangeAddress  = ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT;
     private I2cAddr backRangeAddress = I2cAddr.create8bit(ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT.get8Bit() + 0x10);
-    private I2cDeviceSynch rangeDeviceFront = null;
     private I2cDeviceSynch rangeDeviceBack = null;
     private boolean rangeSensorsDisabled = false;
 
@@ -191,14 +187,8 @@ public class HardwareOmnibot
 
     public void initRangeSensors()
     {
-        rangeDeviceFront = (I2cDeviceSynch)hwMap.get(FRONT_RANGE_SENSOR);
-        rangeDeviceFront.setI2cAddress(frontRangeAddress);
-        rangeSensorFront = new ModernRoboticsI2cRangeSensor(rangeDeviceFront);
-        rangeSensorFront.setI2cAddress(frontRangeAddress);
-
         rangeDeviceBack = (I2cDeviceSynch)hwMap.get(BACK_RANGE_SENSOR);
         rangeDeviceBack.setI2cAddress(backRangeAddress);
-        rangeDeviceBack.disengage();
         rangeSensorBack = new ModernRoboticsI2cRangeSensor(rangeDeviceBack);
         rangeSensorBack.setI2cAddress(backRangeAddress);
 
@@ -208,8 +198,7 @@ public class HardwareOmnibot
     public void enableRangeSensors()
     {
         if(rangeSensorsDisabled) {
-            rangeDeviceFront.engage();
-//            rangeDeviceBack.engage();
+            rangeDeviceBack.engage();
         }
         rangeSensorsDisabled = false;
     }
@@ -217,18 +206,9 @@ public class HardwareOmnibot
     public void disableRangeSensors()
     {
         if (!rangeSensorsDisabled) {
-            rangeDeviceFront.disengage();
-//            rangeDeviceBack.disengage();
+            rangeDeviceBack.disengage();
         }
         rangeSensorsDisabled = true;
-    }
-
-    public double readFrontRangeSensor() {
-        double result = 0.0;
-        if(!rangeSensorsDisabled) {
-            result = rangeSensorFront.getDistance(DistanceUnit.MM);
-        }
-        return result;
     }
 
     // Enabling both range sensors causes interference
@@ -236,7 +216,7 @@ public class HardwareOmnibot
     public double readBackRangeSensor() {
         double result = 0.0;
         if(!rangeSensorsDisabled) {
-            result = rangeSensorFront.getDistance(DistanceUnit.MM);
+            result = rangeSensorBack.getDistance(DistanceUnit.MM);
         }
         return result;
     }
@@ -291,9 +271,13 @@ public class HardwareOmnibot
         shootMotor2.setPower(shootSpeed);
     }
 
-    // xPower: -1.0 to 1.0 power in the X axis
-    // yPower: -1.0 to 1.0 power in the Y axis
-    // spin: -1.0 to 1.0 power to spin, reduced to MAX_SPIN_RATE
+    /**
+     *
+     * @param xPower - -1.0 to 1.0 power in the X axis
+     * @param yPower - -1.0 to 1.0 power in the Y axis
+     * @param spin - -1.0 to 1.0 power to rotate the robot, reduced to MAX_SPIN_RATE
+     * @param angleOffset - The offset from the gyro to run at, such as drive compensation
+     */
     public void drive(double xPower, double yPower, double spin, double angleOffset)
     {
         // Read Gyro Angle Here

@@ -34,7 +34,7 @@ public class OmniAutoRed extends OmniAutoClass {
         telemetry.addLine("Move To Wall");
         updateTelemetry(telemetry);
 
-        moveToWall(0.7, 650.0, 5000);
+        moveToWall(0.7, 625.0, 5000);
         // Check to see if the program should exit
         if(isStopRequested())
         {
@@ -43,7 +43,7 @@ public class OmniAutoRed extends OmniAutoClass {
 
         // Fire up the shooters, and rotate the robot 90 degrees
         robot.shooterSpeed(HardwareOmnibot.HIGH_SHOOT_SPEED);
-        rotateRobot(0.4, 80.0, 7000);
+        rotateRobot(0.4, 90.0, 7000);
         shoot(3000);
 
         //turn and drive forward to the first beacon
