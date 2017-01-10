@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import static java.lang.Math.*;
 
@@ -21,8 +20,10 @@ public class OmniTeleOp extends OpMode {
         robot.init(hardwareMap);
         // Turn off the unused sensors for teleop
         robot.calibrateGyro();
-        robot.disableColorSensors();
-        robot.disableRangeSensors();
+//        robot.disableColorSensors();
+//        robot.disableRangeSensors();
+        telemetry.addLine("Ready");
+        updateTelemetry(telemetry);
     }
 
     private boolean aLatched = false;
@@ -36,35 +37,35 @@ public class OmniTeleOp extends OpMode {
     {
         if(x)
         {
-            robot.leftMotorFore.setPower(1.0);
+            robot.setLeftForeMotorPower(1.0);
         }
         else
         {
-            robot.leftMotorFore.setPower(0.0);
+            robot.setLeftForeMotorPower(0.0);
         }
         if(y)
         {
-            robot.rightMotorFore.setPower(1.0);
+            robot.setRightForeMotorPower(1.0);
         }
         else
         {
-            robot.rightMotorFore.setPower(0.0);
+            robot.setRightForeMotorPower(0.0);
         }
         if(b)
         {
-            robot.rightMotorRear.setPower(1.0);
+            robot.setRightRearMotorPower(1.0);
         }
         else
         {
-            robot.rightMotorRear.setPower(0.0);
+            robot.setRightRearMotorPower(0.0);
         }
         if(a)
         {
-            robot.leftMotorRear.setPower(1.0);
+            robot.setLeftRearMotorPower(1.0);
         }
         else
         {
-            robot.leftMotorRear.setPower(0.0);
+            robot.setLeftRearMotorPower(0.0);
         }
     }
 
@@ -119,13 +120,13 @@ public class OmniTeleOp extends OpMode {
 
         //sweeper
         if (sweeper) {
-            robot.sweeperMotor.setPower(.75);
-            robot.liftMotor.setPower(.75);
+            robot.setSweeperMotorPower(HardwareOmnibot.SWEEP_SPEED);
+            robot.setLiftMotorPower(HardwareOmnibot.LIFT_SPEED);
         } else if (liftReverse) {
-            robot.liftMotor.setPower(-.75);
+            robot.setLiftMotorPower(-HardwareOmnibot.LIFT_SPEED);
         } else {
-            robot.sweeperMotor.setPower(0);
-            robot.liftMotor.setPower(0);
+            robot.setSweeperMotorPower(0.0);
+            robot.setLiftMotorPower(0.0);
         }
 
         //shooter
@@ -149,15 +150,15 @@ public class OmniTeleOp extends OpMode {
         }
 
         if(shoot) {
-            robot.shooterSpeed(shootSpeed);
+            robot.setShooterSpeed(shootSpeed);
         } else {
             if(gamepad2.y)
             {
-                robot.shooterSpeed(-0.3);
+                robot.setShooterSpeed(-0.3);
             }
             else
             {
-                robot.shooterSpeed(0.0);
+                robot.setShooterSpeed(0.0);
             }
         }
 
@@ -185,6 +186,7 @@ public class OmniTeleOp extends OpMode {
         telemetry.addData("Color Blue Front: ", robot.readBlueFrontColorSensor());
         telemetry.addData("Color Red Back: ", robot.readRedBackColorSensor());
         telemetry.addData("Color Blue Back: ", robot.readBlueBackColorSensor());
+        telemetry.addData("ODS Reading: ", robot.readOds());
         updateTelemetry(telemetry);
     }
 }

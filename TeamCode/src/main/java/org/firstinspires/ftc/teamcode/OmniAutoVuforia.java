@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -55,16 +56,18 @@ public class OmniAutoVuforia extends OmniAutoClass {
         parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
         this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
 
+        double targetAngle = 0.0;
+        double targetDistance = 0.0;
         VuforiaTrackables allTargets = this.vuforia.loadTrackablesFromAsset("FTC_2016-17");
 
-        VuforiaTrackable redTarget1 = allTargets.get(3);
+        VuforiaTrackable redTarget1 = allTargets.get(GEARS_NUMBER);
         redTarget1.setName("Gears"); // Gears
-        VuforiaTrackable redTarget2 = allTargets.get(1);
+        VuforiaTrackable redTarget2 = allTargets.get(TOOLS_NUMBER);
         redTarget2.setName("Tools");  // Tools
 
-        VuforiaTrackable blueTarget1  = allTargets.get(0);
+        VuforiaTrackable blueTarget1  = allTargets.get(WHEELS_NUMBER);
         blueTarget1.setName("Wheels");  // Wheels
-        VuforiaTrackable blueTarget2  = allTargets.get(2);
+        VuforiaTrackable blueTarget2  = allTargets.get(LEGOS_NUMBER);
         blueTarget2.setName("Legos");  // Legos
 
         /** For convenience, gather together all the trackable objects in one easily-iterable collection */
@@ -195,6 +198,19 @@ public class OmniAutoVuforia extends OmniAutoClass {
                 }
                 if (targetLocationTransform != null) {
                     lastTargetLocation = targetLocationTransform;
+
+//                    public String formatAsTransform(AxesReference axesReference, AxesOrder axesOrder, AngleUnit unit)
+//                    formatAsTransform(AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+                    VectorF translation = lastTargetLocation.getTranslation();
+                    Orientation orientation = Orientation.getOrientation(lastTargetLocation, AxesReference.EXTRINSIC,
+                            AxesOrder.XYZ, AngleUnit.DEGREES);
+
+                    targetAngle = orientation.secondAngle;
+                    targetDistance = translation.get(2);
+//                    double yDistance = translation.get(0);
+//                    double xDistance = translation.get(1);
+//                    targetAngle = Math.toDegrees(Math.atan2(yDistance, xDistance));
+//                    targetDistance = Math.sqrt(xDistance*xDistance + yDistance*yDistance);
                 }
             }
             /**
@@ -204,9 +220,13 @@ public class OmniAutoVuforia extends OmniAutoClass {
                 //  RobotLog.vv(TAG, "robot=%s", format(lastLocation));
                 telemetry.addData("Pos", format(lastLocation));
                 telemetry.addData("TargPos", format(lastTargetLocation));
+                telemetry.addData("Target Angle: ", targetAngle);
+                telemetry.addData("Target Dist: ", targetDistance);
             } else {
                 telemetry.addData("Pos", "Unknown");
                 telemetry.addData("TargPos", "Unknown");
+                telemetry.addData("Target Angle: ", "Unknown");
+                telemetry.addData("Target Dist: ", "Unknown");
             }
             telemetry.update();
         }
