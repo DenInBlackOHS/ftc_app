@@ -78,13 +78,13 @@ public class OmniSinglePlayer extends OpMode {
 
         //sweeper
         if (sweeper) {
-            robot.sweeperMotor.setPower(.75);
-            robot.liftMotor.setPower(.75);
+            robot.setLiftMotorPower(HardwareOmnibot.LIFT_SPEED);
+            robot.setSweeperMotorPower(HardwareOmnibot.SWEEP_SPEED);
         } else if (liftReverse) {
-            robot.liftMotor.setPower(-.75);
+            robot.setLiftMotorPower(-HardwareOmnibot.LIFT_SPEED);
         } else {
-            robot.sweeperMotor.setPower(0);
-            robot.liftMotor.setPower(0);
+            robot.setLiftMotorPower(0.0);
+            robot.setSweeperMotorPower(0.0);
         }
 
         //shooter
@@ -108,11 +108,9 @@ public class OmniSinglePlayer extends OpMode {
         }
 
         if(shoot) {
-            robot.shootMotor1.setPower(shootSpeed);
-            robot.shootMotor2.setPower(shootSpeed);
+            robot.setShooterSpeed(HardwareOmnibot.HIGH_SHOOT_SPEED);
         } else {
-            robot.shootMotor1.setPower(0);
-            robot.shootMotor2.setPower(0);
+            robot.setShooterSpeed(0.0);
         }
 
         telemetry.addData("Red Detected: ", robot.colorSensorFront.red());

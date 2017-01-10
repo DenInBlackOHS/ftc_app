@@ -12,10 +12,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 public class OmniAutoBlue extends OmniAutoClass {
 
     @Override
-    public void runOpMode() throws InterruptedException{
-
-        boolean beacon1Pressed = false;
-        setupRobotParameters(4, 20);
+    public void runOpMode() throws InterruptedException
+    {
+        final double ROBOT_ANGLE = 90.0;
+        setupRobotParameters(4, 40);
+//        setupVuforiaImages();
+//        setupTextToSpeech();
 
         telemetry.addLine("Ready");
         updateTelemetry(telemetry);
@@ -24,58 +26,90 @@ public class OmniAutoBlue extends OmniAutoClass {
         telemetry.addLine("Set");
         updateTelemetry(telemetry);
 
-        //first, the robot will shoot.
-        shoot(4000);
-
-        telemetry.addLine("Done Shooting");
+        // Move to shooting position from wall using range sensor.
+        telemetry.addLine("Move To Wall");
         updateTelemetry(telemetry);
 
-        // Check to see if the program should exit
-        if(isStopRequested())
-        {
-            return;
-        }
-        sleep(1000);
-
-        //turn and drive forward to the first beacon
-        rotateRobot(0.2, 35.0, 1000);
-        telemetry.addLine("Rotated");
-        updateTelemetry(telemetry);
-
-        sleep(1000);
-
-        driveForwardOnHeading(-0.7, 60, 7000);
-        telemetry.addLine("Drove");
-        updateTelemetry(telemetry);
-
-        sleep(1000);
-
-        rotateRobot(-0.2, 70.0, 2000);
-        driveForwardOnHeading(-0.7, 4, 1000);
-
-        //sense for color...
-        /*
-        while(!beacon1Pressed) {
-            if (!returnedBlue()) {
-                driveForwardOnHeading(-0.7, 4, 1000);
-            } else {
-                driveRightOnHeading(0.5, 2, 1000);
-                beacon1Pressed = true;
-                driveForwardOnHeading(-0.7, 36, 5000);
-            }
-        }
-
-         */
-
-        // Check to see if the program should exit
+        driveToWall(1.0, 0.2, 30.0, 5000);
         if(isStopRequested())
         {
             return;
         }
 
-        telemetry.addLine("Go");
-        updateTelemetry(telemetry);
+        // Fire up the shooters, and rotate the robot 90 degrees
+        robot.setShooterSpeed(HardwareOmnibot.MID_LOW_SHOOT_SPEED);
+        rotateRobot(0.4, 90.0, 7000);
+        // Check to see if the program should exit
+        if(isStopRequested())
+        {
+            return;
+        }
+        shoot(2000);
+        robot.setShooterSpeed(0.0);
+        // Check to see if the program should exit
+        if(isStopRequested()) {
+            return;
+        }
 
+        // We should be able to acquire the gears target here
+//        rotateRobotToAngle(0.6, ROBOT_ANGLE - 9.0, 7000);
+//        if(isStopRequested())
+//        {
+//            return;
+//        }
+        // Move towards the wall a distance we should pick up the line and beacon colors
+        driveToWall(1.0, 0.2, 5.0, 5000);
+        if(isStopRequested())
+        {
+            return;
+        }
+        rotateRobotToAngle(0.6, ROBOT_ANGLE, 7000);
+        if(isStopRequested())
+        {
+            return;
+        }
+
+        if(isStopRequested())
+        {
+            return;
+        }
+        acquireLineOds(30000, ROBOT_ANGLE, true);
+        if(isStopRequested())
+        {
+            return;
+        }
+        captureBlueBeacon(30000);
+        if(isStopRequested())
+        {
+            return;
+        }
+        // Try getting further from the wall see if we can make the run to beacon 2.
+        driveToWall(1.0, 0.2, 10.0, 5000);
+        driveDistanceForwardOnHeading(1.0, 55.0, 3000, true);
+        if(isStopRequested())
+        {
+            return;
+        }
+
+        acquireLineOds(30000, ROBOT_ANGLE, true);
+        if(isStopRequested())
+        {
+            return;
+        }
+        captureBlueBeacon(30000);
+
+        while(!isStopRequested())
+        {
+            driveAtHeading(1.0, 0.2, ROBOT_ANGLE + 50.0, ROBOT_ANGLE);
+        }
+//        enableVuforiaTracking();
+//        acquireRedTarget1(30000);
+//        if(isStopRequested())
+//        {
+//            // +14 degrees
+//            // -880 mm
+//            return;
+//        }
         endAuto();
     }
 }

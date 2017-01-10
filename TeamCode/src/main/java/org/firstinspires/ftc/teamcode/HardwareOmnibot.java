@@ -31,9 +31,13 @@ public class HardwareOmnibot
     public final static double MAX_SPIN_RATE = 0.6;
     public final static double MIN_SPIN_RATE = 0.1;
     public final static double MIN_DRIVE_RATE = 0.1;
+    public final static double LIFT_SPEED = 0.5;
+    public final static double SWEEP_SPEED = 0.75;
 
     // Color sensor threshold value
-    public final static int MIN_COLOR_VALUE = 2;
+    public final static int MIN_BLUE_COLOR_VALUE = 2;
+    public final static int MIN_RED_COLOR_VALUE = 2;
+    public final static double MIN_ODS_VALUE = 0.01;
 
     // Robot Controller Config Strings
     public final static String FRONT_COLOR_SENSOR = "front_color";
@@ -50,22 +54,22 @@ public class HardwareOmnibot
     public final static String SHOOTER_2_MOTOR = "Shoot2";
     public final static String BUTTON_SERVO = "ServoButton";
 
-    public DcMotor leftMotorFore = null;
-    public DcMotor rightMotorFore = null;
-    public DcMotor leftMotorRear = null;
-    public DcMotor rightMotorRear = null;
-    public DcMotor sweeperMotor = null;
-    public DcMotor liftMotor = null;
-    public DcMotor shootMotor1 = null;
-    public DcMotor shootMotor2 = null;
-    public Servo buttonPush = null;
-    public ModernRoboticsI2cGyro gyro = null;
-    public ModernRoboticsAnalogOpticalDistanceSensor ods1 = null;
+    protected DcMotor leftMotorFore = null;
+    protected DcMotor rightMotorFore = null;
+    protected DcMotor leftMotorRear = null;
+    protected DcMotor rightMotorRear = null;
+    protected DcMotor sweeperMotor = null;
+    protected DcMotor liftMotor = null;
+    protected DcMotor shootMotor1 = null;
+    protected DcMotor shootMotor2 = null;
+    protected Servo buttonPush = null;
+    protected ModernRoboticsI2cGyro gyro = null;
+    protected ModernRoboticsAnalogOpticalDistanceSensor ods1 = null;
     public double ambientLight = 0;
 
     // Code to allow disabling the color sensors for teleop
-    public ModernRoboticsI2cColorSensor colorSensorFront = null;
-    public ModernRoboticsI2cColorSensor colorSensorBack = null;
+    protected ModernRoboticsI2cColorSensor colorSensorFront = null;
+    protected ModernRoboticsI2cColorSensor colorSensorBack = null;
     private I2cAddr frontColorAddress  = ModernRoboticsI2cColorSensor.DEFAULT_I2C_ADDRESS;
     private I2cAddr backColorAddress = I2cAddr.create8bit(ModernRoboticsI2cColorSensor.DEFAULT_I2C_ADDRESS.get8Bit() + 0x10);
     private I2cController frontColorController;
@@ -75,12 +79,19 @@ public class HardwareOmnibot
     private boolean colorSensorsDisabled = false;
 
     // Code to allow disabling the color sensors for teleop
-    public ModernRoboticsI2cRangeSensor rangeSensorBack = null;
+    protected ModernRoboticsI2cRangeSensor rangeSensorBack = null;
     private I2cAddr backRangeAddress = I2cAddr.create8bit(ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT.get8Bit() + 0x10);
     private I2cDeviceSynch rangeDeviceBack = null;
     private boolean rangeSensorsDisabled = false;
 
     private static final int encoderClicksPerSecond = 2800;
+    private double leftForeMotorPower = 0.0;
+    private double leftRearMotorPower = 0.0;
+    private double rightForeMotorPower = 0.0;
+    private double rightRearMotorPower = 0.0;
+    private double shooterSpeed = 0.0;
+    private double liftMotorPower = 0.0;
+    private double sweeperMotorPower = 0.0;
 
     /* local OpMode members. */
     private HardwareMap hwMap  =  null;
@@ -229,7 +240,7 @@ public class HardwareOmnibot
 
     public double readOds()
     {
-        return ods1.getLightDetected();
+        return (ods1.getLightDetected() - ambientLight);
     }
 
     public void initGyro()
@@ -265,10 +276,76 @@ public class HardwareOmnibot
         return heading;
     }
 
-    public void shooterSpeed(double shootSpeed)
+    public void setShooterSpeed(double speed)
     {
-        shootMotor1.setPower(shootSpeed);
-        shootMotor2.setPower(shootSpeed);
+        if(speed != shooterSpeed)
+        {
+            shooterSpeed = speed;
+            shootMotor1.setPower(speed);
+            shootMotor2.setPower(speed);
+        }
+    }
+
+    public void setLeftForeMotorPower(double power)
+    {
+        if(power != leftForeMotorPower)
+        {
+            leftForeMotorPower = power;
+            leftMotorFore.setPower(power);
+        }
+    }
+
+    public void setLeftRearMotorPower(double power)
+    {
+        if(power != leftRearMotorPower)
+        {
+            leftRearMotorPower = power;
+            leftMotorRear.setPower(power);
+        }
+    }
+
+    public void setRightForeMotorPower(double power)
+    {
+        if(power != rightForeMotorPower)
+        {
+            rightForeMotorPower = power;
+            rightMotorFore.setPower(power);
+        }
+    }
+
+    public void setRightRearMotorPower(double power)
+    {
+        if(power != rightRearMotorPower)
+        {
+            rightRearMotorPower = power;
+            rightMotorRear.setPower(power);
+        }
+    }
+
+    public void setAllDriveZero()
+    {
+        setLeftForeMotorPower(0.0);
+        setLeftRearMotorPower(0.0);
+        setRightForeMotorPower(0.0);
+        setRightRearMotorPower(0.0);
+    }
+
+    public void setLiftMotorPower(double speed)
+    {
+        if(speed != liftMotorPower)
+        {
+            liftMotorPower = speed;
+            liftMotor.setPower(speed);
+        }
+    }
+
+    public void setSweeperMotorPower(double speed)
+    {
+        if(speed != sweeperMotorPower)
+        {
+            sweeperMotorPower = speed;
+            sweeperMotor.setPower(speed);
+        }
     }
 
     /**
@@ -314,10 +391,10 @@ public class HardwareOmnibot
         RFpower /= maxPower;
         RRpower /= maxPower;
 
-        leftMotorFore.setPower(LFpower);
-        rightMotorFore.setPower(RFpower);
-        leftMotorRear.setPower(LRpower);
-        rightMotorRear.setPower(RRpower);
+        setLeftForeMotorPower(LFpower);
+        setLeftRearMotorPower(LRpower);
+        setRightForeMotorPower(RFpower);
+        setRightRearMotorPower(RRpower);
     }
 
     public void resetDriveEncoders()
@@ -372,14 +449,10 @@ public class HardwareOmnibot
         shootMotor2.setDirection(DcMotor.Direction.REVERSE);
 
         // Set all motors to zero power
-        leftMotorFore.setPower(0);
-        rightMotorFore.setPower(0);
-        leftMotorRear.setPower(0);
-        rightMotorRear.setPower(0);
-        sweeperMotor.setPower(0);
-        liftMotor.setPower(0);
-        shootMotor1.setPower(0);
-        shootMotor2.setPower(0);
+        setAllDriveZero();
+        setSweeperMotorPower(0.0);
+        setLiftMotorPower(0.0);
+        setShooterSpeed(0.0);
 
         resetDriveEncoders();
         shootMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
