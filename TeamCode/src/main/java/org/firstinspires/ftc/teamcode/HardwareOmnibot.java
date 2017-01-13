@@ -43,6 +43,7 @@ public class HardwareOmnibot
     public final static String FRONT_COLOR_SENSOR = "front_color";
     public final static String BACK_COLOR_SENSOR = "back_color";
     public final static String BACK_RANGE_SENSOR = "back_range";
+    public final static String FRONT_RANGE_SENSOR = "front_range";
     public final static String GYRO = "gyro";
     public final static String FRONT_LEFT_MOTOR = "MotorLF";
     public final static String FRONT_RIGHT_MOTOR = "MotorRF";
@@ -79,6 +80,9 @@ public class HardwareOmnibot
     private boolean colorSensorsDisabled = false;
 
     // Code to allow disabling the color sensors for teleop
+    protected ModernRoboticsI2cRangeSensor rangeSensorFront = null;
+    private I2cAddr frontRangeAddress = ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT;
+    private I2cDeviceSynch rangeDeviceFront = null;
     protected ModernRoboticsI2cRangeSensor rangeSensorBack = null;
     private I2cAddr backRangeAddress = I2cAddr.create8bit(ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT.get8Bit() + 0x10);
     private I2cDeviceSynch rangeDeviceBack = null;
@@ -198,6 +202,11 @@ public class HardwareOmnibot
 
     public void initRangeSensors()
     {
+        rangeDeviceFront = (I2cDeviceSynch)hwMap.get(FRONT_RANGE_SENSOR);
+        rangeDeviceFront.setI2cAddress(frontRangeAddress);
+        rangeSensorFront = new ModernRoboticsI2cRangeSensor(rangeDeviceFront);
+        rangeSensorFront.setI2cAddress(frontRangeAddress);
+
         rangeDeviceBack = (I2cDeviceSynch)hwMap.get(BACK_RANGE_SENSOR);
         rangeDeviceBack.setI2cAddress(backRangeAddress);
         rangeSensorBack = new ModernRoboticsI2cRangeSensor(rangeDeviceBack);
@@ -210,6 +219,7 @@ public class HardwareOmnibot
     {
         if(rangeSensorsDisabled) {
             rangeDeviceBack.engage();
+            rangeDeviceFront.engage();
         }
         rangeSensorsDisabled = false;
     }
@@ -218,16 +228,23 @@ public class HardwareOmnibot
     {
         if (!rangeSensorsDisabled) {
             rangeDeviceBack.disengage();
+            rangeDeviceFront.disengage();
         }
         rangeSensorsDisabled = true;
     }
 
-    // Enabling both range sensors causes interference
-    // So this function is using the front sensor for now.
     public double readBackRangeSensor() {
         double result = 0.0;
         if(!rangeSensorsDisabled) {
             result = rangeSensorBack.getDistance(DistanceUnit.MM);
+        }
+        return result;
+    }
+
+    public double readFrontRangeSensor() {
+        double result = 0.0;
+        if(!rangeSensorsDisabled) {
+            result = rangeSensorFront.getDistance(DistanceUnit.MM);
         }
         return result;
     }

@@ -74,6 +74,7 @@ public class OmniTeleOp extends OpMode {
     {
         // Executes when start is pressed before loop starts getting called
         // Might want to reset the Gyro here.
+        robot.resetGyro();
     }
 
     @Override

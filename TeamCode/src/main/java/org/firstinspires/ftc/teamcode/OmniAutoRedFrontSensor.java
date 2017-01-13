@@ -7,9 +7,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  * Created by Ethan on 10/30/2016.
  */
 
-@Autonomous(name="Omni: AutoRed", group ="Auto")
+@Autonomous(name="Omni: AutoRedFrontSensor", group ="Auto")
 
-public class OmniAutoRed extends OmniAutoClass {
+public class OmniAutoRedFrontSensor extends OmniAutoClass {
 
     @Override
     public void runOpMode() throws InterruptedException
@@ -26,7 +26,7 @@ public class OmniAutoRed extends OmniAutoClass {
 
         robot.resetGyro();
 
-        driveToWall(1.0, 0.2, 30.0, 5000, false);
+        driveToWall(1.0, 0.2, 30.0, 5000, true);
         if(isStopRequested())
         {
             return;

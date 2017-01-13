@@ -23,6 +23,9 @@ public class OmniAutoBlue extends OmniAutoClass {
         updateTelemetry(telemetry);
 
         waitForStart();
+
+        robot.resetGyro();
+
         telemetry.addLine("Set");
         updateTelemetry(telemetry);
 
@@ -30,7 +33,7 @@ public class OmniAutoBlue extends OmniAutoClass {
         telemetry.addLine("Move To Wall");
         updateTelemetry(telemetry);
 
-        driveToWall(1.0, 0.2, 30.0, 5000);
+        driveToWall(1.0, 0.2, 30.0, 5000, false);
         if(isStopRequested())
         {
             return;
@@ -58,7 +61,7 @@ public class OmniAutoBlue extends OmniAutoClass {
 //            return;
 //        }
         // Move towards the wall a distance we should pick up the line and beacon colors
-        driveToWall(1.0, 0.2, 5.0, 5000);
+        driveToWall(1.0, 0.2, 5.0, 5000, false);
         if(isStopRequested())
         {
             return;
@@ -84,7 +87,7 @@ public class OmniAutoBlue extends OmniAutoClass {
             return;
         }
         // Try getting further from the wall see if we can make the run to beacon 2.
-        driveToWall(1.0, 0.2, 10.0, 5000);
+        driveToWall(1.0, 0.2, 10.0, 5000, false);
         driveDistanceForwardOnHeading(1.0, 55.0, 3000, true);
         if(isStopRequested())
         {
