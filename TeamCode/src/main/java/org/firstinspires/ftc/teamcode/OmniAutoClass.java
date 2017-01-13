@@ -613,34 +613,41 @@ public abstract class OmniAutoClass extends LinearOpMode {
      * @param distanceFromWall - The distance to make the robot parallel to the wall in inches
      * @param timeout - The maximum amount of time to wait until giving up
      */
-    public void driveToWall(double maxSpeed, double maxRotation, double distanceFromWall, int timeout)
+    public void driveToWall(double maxSpeed, double maxRotation, double distanceFromWall, int timeout, boolean frontSensor)
     {
         double allowedDistanceError = 10;
         int sleepTime = 0;
         final int deltaSleep = 50;
         double maxSpeedAbs = Math.abs(maxSpeed);
-        double backDistance = 0.0;
-        double backDelta = 0.0;
-        double backError = 0.0;
+        double sensorDistance = 0.0;
+        double sensorDelta = 0.0;
+        double sensorError = 0.0;
         double speed = 0.0;
         double distanceFromWallMm = distanceFromWall * mmPerInch;
         double gyroAngle = robot.readGyro();
 
-        backDistance = robot.readBackRangeSensor();
-        backDelta = backDistance - distanceFromWallMm;
-        backError = Math.abs(backDelta);
+        if(frontSensor)
+        {
+            sensorDistance = robot.readFrontRangeSensor();
+        }
+        else
+        {
+            sensorDistance = robot.readBackRangeSensor();
+        }
+        sensorDelta = sensorDistance - distanceFromWallMm;
+        sensorError = Math.abs(sensorDelta);
 
-        while(((backError > allowedDistanceError)) && (sleepTime < timeout))
+        while(((sensorError > allowedDistanceError)) && (sleepTime < timeout))
         {
             // Calculate the linear driving
-            if(backDistance < distanceFromWallMm)
+            if(sensorDistance < distanceFromWallMm)
             {
                 // Drive away from wall
-                speed = controlledDeceleration(backError, maxSpeedAbs);
-            } else if (backDistance > distanceFromWallMm)
+                speed = controlledDeceleration(sensorError, maxSpeedAbs);
+            } else if (sensorDistance > distanceFromWallMm)
             {
                 // Drive towards wall
-                speed = controlledDeceleration(backError, -maxSpeedAbs);
+                speed = controlledDeceleration(sensorError, -maxSpeedAbs);
             }
             else
             {
@@ -649,8 +656,8 @@ public abstract class OmniAutoClass extends LinearOpMode {
             }
 
             telemetry.addData("Target Distance: ", distanceFromWallMm);
-            telemetry.addData("Back Distance: ", backDistance);
-            telemetry.addData("Delta Distance: ", backDelta);
+            telemetry.addData("Sensor Distance: ", sensorDistance);
+            telemetry.addData("Delta Distance: ", sensorDelta);
             telemetry.addData("Max Power: ", maxSpeedAbs);
             telemetry.addData("Speed: ", speed);
             telemetry.addData("Gyro Angle: ", gyroAngle);
@@ -664,9 +671,16 @@ public abstract class OmniAutoClass extends LinearOpMode {
             sleepTime += deltaSleep;
 
             // Get new readings
-            backDistance = robot.readBackRangeSensor();
-            backDelta = backDistance - distanceFromWallMm;
-            backError = Math.abs(backDelta);
+            if(frontSensor)
+            {
+                sensorDistance = robot.readFrontRangeSensor();
+            }
+            else
+            {
+                sensorDistance = robot.readBackRangeSensor();
+            }
+            sensorDelta = sensorDistance - distanceFromWallMm;
+            sensorError = Math.abs(sensorDelta);
 
             if (isStopRequested()) {
                 // If stop has been requested, break out of the while loop.
@@ -758,7 +772,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // The sensor is in the back, so closer to the wall when we press
-            driveToWall(0.4, 0.1, 1.0, 1500);
+            driveToWall(0.4, 0.1, 1.0, 1500, false);
             if(isStopRequested())
             {
                 return 0;
@@ -766,7 +780,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
             // Start the timer in case we pressed the wrong button
             startTime = System.currentTimeMillis();
             // Drive away from the wall to read the color sensors
-            driveToWall(0.4, 0.1, 5.0, 3000);
+            driveToWall(0.4, 0.1, 5.0, 3000, false);
             if(isStopRequested())
             {
                 return 0;
@@ -783,7 +797,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // This will probably time out because the sensor is away from the wall because of the angle
-            driveToWall(0.4, 0.1, 2.0, 1500);
+            driveToWall(0.4, 0.1, 2.0, 1500, false);
             if(isStopRequested())
             {
                 return 0;
@@ -791,7 +805,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
             // Start the timer in case we pressed the wrong button
             startTime = System.currentTimeMillis();
             // Drive away from the wall to read the color sensors
-            driveToWall(0.4, 0.1, 5.0, 3000);
+            driveToWall(0.4, 0.1, 5.0, 3000, false);
             if(isStopRequested())
             {
                 return 0;
@@ -815,7 +829,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
         {
             return;
         }
-        driveToWall(0.4, 0.1, READING_DISTANCE, 2000);
+        driveToWall(0.4, 0.1, READING_DISTANCE, 2000, false);
         if(isStopRequested())
         {
             return;
@@ -838,13 +852,13 @@ public abstract class OmniAutoClass extends LinearOpMode {
             {
                 sleep(4750);
                 // We can press either button, so just go straight in.
-                driveToWall(0.4, 0.1, 1.0, 1500);
+                driveToWall(0.4, 0.1, 1.0, 1500, false);
                 if(isStopRequested())
                 {
                     return;
                 }
                 // Pull away from the wall
-                driveToWall(0.4, 0.1, READING_DISTANCE, 3000);
+                driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
                 rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
             }
             else
@@ -872,7 +886,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // The sensor is in the "back", so further from the wall when we press
-            driveToWall(0.4, 0.1, 0.0, 1500);
+            driveToWall(0.4, 0.1, 0.0, 1500, false);
             if(isStopRequested())
             {
                 return 0;
@@ -880,7 +894,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
             // Start the timer in case we pressed the wrong button
             startTime = System.currentTimeMillis();
             // Drive away from the wall to read the color sensors
-            driveToWall(0.4, 0.1, 5.0, 3000);
+            driveToWall(0.4, 0.1, 5.0, 3000, false);
             if(isStopRequested())
             {
                 return 0;
@@ -896,7 +910,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
 
-            driveToWall(0.4, 0.1, 0.0, 1500);
+            driveToWall(0.4, 0.1, 0.0, 1500, false);
             if(isStopRequested())
             {
                 return 0;
@@ -904,7 +918,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
             // Start the timer in case we pressed the wrong button
             startTime = System.currentTimeMillis();
             // Drive away from the wall to read the color sensors
-            driveToWall(0.4, 0.1, 5.0, 3000);
+            driveToWall(0.4, 0.1, 5.0, 3000, false);
             if(isStopRequested())
             {
                 return 0;
@@ -928,7 +942,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
         {
             return;
         }
-        driveToWall(0.4, 0.1, READING_DISTANCE, 2000);
+        driveToWall(0.4, 0.1, READING_DISTANCE, 2000, false);
         if(isStopRequested())
         {
             return;
@@ -951,13 +965,13 @@ public abstract class OmniAutoClass extends LinearOpMode {
             {
                 sleep(4750);
                 // We can press either button, so just go straight in.
-                driveToWall(0.4, 0.1, 1.0, 1500);
+                driveToWall(0.4, 0.1, 1.0, 1500, false);
                 if(isStopRequested())
                 {
                     return;
                 }
                 // Pull away from the wall
-                driveToWall(0.4, 0.1, READING_DISTANCE, 3000);
+                driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
                 rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
             }
             else
