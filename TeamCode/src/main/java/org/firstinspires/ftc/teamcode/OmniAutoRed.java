@@ -34,6 +34,7 @@ public class OmniAutoRed extends OmniAutoClass {
         // Fire up the shooters, and rotate the robot 90 degrees
         robot.setShooterSpeed(HardwareOmnibot.LOW_SHOOT_SPEED);
         shoot(2000);
+        rotateRobot(0.4, ROBOT_ANGLE - 7.0, 7000);
         robot.setShooterSpeed(0.0);
         // Check to see if the program should exit
         if(isStopRequested()) {
