@@ -7,16 +7,17 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  * Created by Ethan on 10/30/2016.
  */
 
-@Autonomous(name="Omni: AutoBlueShootOnly", group ="Expiremental")
+@Autonomous(name="Omni: AutoBlueVuforia", group ="Expiremental")
 
-public class OmniAutoBlueShootOnly extends OmniAutoClass {
+public class OmniAutoBlueVurforia extends OmniAutoClass {
 
     @Override
     public void runOpMode() throws InterruptedException
     {
         final double ROBOT_ANGLE = 90.0;
-        final double DRIVE_ANGLE = 0.0;
         setupRobotParameters(4, 40);
+        setupVuforiaImages();
+        setupTextToSpeech();
 
         telemetry.addLine("Ready");
         updateTelemetry(telemetry);
@@ -53,36 +54,14 @@ public class OmniAutoBlueShootOnly extends OmniAutoClass {
             return;
         }
 
-        // Move towards the wall a distance we should pick up the line and beacon colors
-        driveToWall(1.0, 0.2, 5.0, 5000, false);
+        enableVuforiaTracking();
+        acquireRedTarget1(30000);
         if(isStopRequested())
         {
+            // +14 degrees
+            // -880 mm
             return;
         }
-        rotateRobotToAngle(0.6, ROBOT_ANGLE, 7000);
-        if(isStopRequested())
-        {
-            return;
-        }
-
-        if(isStopRequested())
-        {
-            return;
-        }
-
-        // Try getting further from the wall see if we can make the run to beacon 2.
-        driveToWall(1.0, 0.2, 10.0, 5000, false);
-        driveDistanceForwardOnHeading(1.0, 55.0, 3000, true);
-        if(isStopRequested())
-        {
-            return;
-        }
-
-        while(!isStopRequested())
-        {
-            driveAtHeading(1.0, 0.2, ROBOT_ANGLE + 50.0, ROBOT_ANGLE);
-        }
-
         endAuto();
     }
 }

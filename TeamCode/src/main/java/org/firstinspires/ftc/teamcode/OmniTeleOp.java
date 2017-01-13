@@ -31,44 +31,6 @@ public class OmniTeleOp extends OpMode {
     private double shootSpeed = HardwareOmnibot.HIGH_SHOOT_SPEED;
     private double driverAngle = 0.0;
 
-    // This function allows us to test the motors correspond to what we think they are
-    // and that they spin the direction we think they should.
-    private void motorTest(boolean x, boolean y, boolean b, boolean a)
-    {
-        if(x)
-        {
-            robot.setLeftForeMotorPower(1.0);
-        }
-        else
-        {
-            robot.setLeftForeMotorPower(0.0);
-        }
-        if(y)
-        {
-            robot.setRightForeMotorPower(1.0);
-        }
-        else
-        {
-            robot.setRightForeMotorPower(0.0);
-        }
-        if(b)
-        {
-            robot.setRightRearMotorPower(1.0);
-        }
-        else
-        {
-            robot.setRightRearMotorPower(0.0);
-        }
-        if(a)
-        {
-            robot.setLeftRearMotorPower(1.0);
-        }
-        else
-        {
-            robot.setLeftRearMotorPower(0.0);
-        }
-    }
-
     @Override
     public void start()
     {
@@ -94,30 +56,25 @@ public class OmniTeleOp extends OpMode {
         spin = gamepad1.right_stick_x;
         boolean motorTest = false ;
 
-        if(motorTest) {
-            motorTest(gamepad1.x, gamepad1.y, gamepad1.b, gamepad1.a);
-        }
-        else {
-            if (gamepad1.x) {
-                // The driver presses X, then uses the left joystick to say what angle the robot
-                // is aiming.  This will calculate the values as long as X is pressed, and will
-                // not drive the robot using the left stick.  Once X is released, it will use the
-                // final calculated angle and drive with the left stick.  Button should be released
-                // before stick.  The default behavior of atan2 is 0 to -180 on Y Axis CCW, and 0 to
-                // 180 CW.  This code normalizes that to 0 to 360 CCW from the Y Axis
-                robot.resetGyro();
-                driverAngle = -toDegrees(atan2(xPower, yPower));
-                if (driverAngle < 0) {
-                    driverAngle += 360;
-                }
-                driverAngle -= robot.readGyro();
-                xPower = 0.0;
-                yPower = 0.0;
-                spin = 0.0;
+        if (gamepad1.x) {
+            // The driver presses X, then uses the left joystick to say what angle the robot
+            // is aiming.  This will calculate the values as long as X is pressed, and will
+            // not drive the robot using the left stick.  Once X is released, it will use the
+            // final calculated angle and drive with the left stick.  Button should be released
+            // before stick.  The default behavior of atan2 is 0 to -180 on Y Axis CCW, and 0 to
+            // 180 CW.  This code normalizes that to 0 to 360 CCW from the Y Axis
+            robot.resetGyro();
+            driverAngle = -toDegrees(atan2(xPower, yPower));
+            if (driverAngle < 0) {
+                driverAngle += 360;
             }
-
-            robot.drive(xPower, yPower, spin, driverAngle);
+            driverAngle -= robot.readGyro();
+            xPower = 0.0;
+            yPower = 0.0;
+            spin = 0.0;
         }
+
+        robot.drive(xPower, yPower, spin, driverAngle);
 
         //sweeper
         if (sweeper) {

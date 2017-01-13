@@ -298,6 +298,27 @@ public abstract class OmniAutoClass extends LinearOpMode {
 
     /**
      *
+     * @param speed - The driving power
+     * @param rotateSpeed - The rotational speed to correct heading errors
+     * @param driveAngle - The angle of movement to drive the robot
+     * @param headingAngle - The heading angle to hold while driving
+     */
+    public void driveAtHeadingForTime(double speed, double rotateSpeed, double driveAngle, double headingAngle, int driveTime)
+    {
+        int sleepTime = 0;
+        final int DELTA_SLEEP = 50;
+
+        while(!isStopRequested() && sleepTime < driveTime)
+        {
+            driveAtHeading(speed, rotateSpeed, driveAngle, headingAngle);
+            sleep(50);
+            sleepTime += DELTA_SLEEP;
+        }
+        robot.setAllDriveZero();
+    }
+
+    /**
+     *
      * @param speed - The maximum speed for the robot
      * @param rotateSpeed - The maximum rotational speed for the robot
      * @param driveAngle - The angle to drive at
@@ -583,7 +604,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
      */
     private double controlledRotationAngle(double angleToTravel, double maxSpeed)
     {
-        final double fastAngle = 30.0;
+        final double fastAngle = 45.0;
         final double mediumAngle = 15.0;
         final double mediumDivider = 2.0;
         final double slowDivider = 4.0;
@@ -625,10 +646,21 @@ public abstract class OmniAutoClass extends LinearOpMode {
         double speed = 0.0;
         double distanceFromWallMm = distanceFromWall * mmPerInch;
         double gyroAngle = robot.readGyro();
+        double driveAngle = gyroAngle;
+        double robotRotation = maxRotation;
 
         if(frontSensor)
         {
             sensorDistance = robot.readFrontRangeSensor();
+            driveAngle -= 90.0;
+            if(gyroAngle < 0.0)
+            {
+                gyroAngle += 360.0;
+            }
+            else if(gyroAngle > 360.0)
+            {
+                gyroAngle -= 360.0;
+            }
         }
         else
         {
@@ -663,7 +695,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
             telemetry.addData("Gyro Angle: ", gyroAngle);
             telemetry.addData("Sleep Time: ", sleepTime);
             // Drive in the X direction should be the same as driving left/right
-            driveAtHeading(speed, maxRotation, gyroAngle, gyroAngle);
+            driveAtHeading(speed, maxRotation, driveAngle, gyroAngle);
             updateTelemetry(telemetry);
 
             // Let things happen
@@ -693,6 +725,10 @@ public abstract class OmniAutoClass extends LinearOpMode {
     public void endAuto() {
         robot.disableRangeSensors();
         robot.disableColorSensors();
+        while(!isStopRequested())
+        {
+            sleep(100);
+        }
     }
 
     public void enableVuforiaTracking()
@@ -701,7 +737,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
         allTargets.activate();
     }
 
-    public void acquireLineOds(int maxTime, double heading, boolean farSide)
+    public void acquireLineOds(int maxTime, double heading, double driveAngle, boolean farSide)
     {
         boolean targetAcquired = false;
         boolean lineAcquired = false;
@@ -726,7 +762,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 }
                 else
                 {
-                    driveAtHeading(0.15, 0.1, 0.0, heading);
+                    driveAtHeading(0.15, 0.1, driveAngle, heading);
                     sleep(deltaSleep);
                 }
             }
@@ -741,7 +777,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 }
                 else
                 {
-                    driveAtHeading(0.15, 0.1, 0.0, heading);
+                    driveAtHeading(0.15, 0.1, driveAngle, heading);
                     sleep(deltaSleep);
                 }
             }
@@ -755,18 +791,18 @@ public abstract class OmniAutoClass extends LinearOpMode {
         }
     }
 
-    private long pressCorrectButtonRed()
+    private long pressCorrectButtonRed(double heading)
     {
-        final double ROBOT_ANGLE = 269.0;
         final double FRONT_BUTTON_DELTA = 5.0;
         final double BACK_BUTTON_DELTA = 8.0;
+        final double READING_DISTANCE = 5.5;
         long startTime = 0;
 
         // We are looking for blue because it is a stronger returning color
         if(robot.readBlueFrontColorSensor() > HardwareOmnibot.MIN_BLUE_COLOR_VALUE)
         {
             // Angle the robot towards the back button
-            rotateRobotToAngle(0.4, ROBOT_ANGLE - BACK_BUTTON_DELTA, 3000);
+            rotateRobotToAngle(0.4, heading - BACK_BUTTON_DELTA, 3000);
             if(isStopRequested())
             {
                 return 0;
@@ -780,18 +816,18 @@ public abstract class OmniAutoClass extends LinearOpMode {
             // Start the timer in case we pressed the wrong button
             startTime = System.currentTimeMillis();
             // Drive away from the wall to read the color sensors
-            driveToWall(0.4, 0.1, 5.0, 3000, false);
+            driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
             if(isStopRequested())
             {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
+            rotateRobotToAngle(0.4, heading, 3000);
         }
         else
         {
             // Rotate the robot towards the front button.
-            rotateRobotToAngle(0.4, ROBOT_ANGLE + FRONT_BUTTON_DELTA, 3000);
+            rotateRobotToAngle(0.4, heading + FRONT_BUTTON_DELTA, 3000);
             if(isStopRequested())
             {
                 return 0;
@@ -805,26 +841,25 @@ public abstract class OmniAutoClass extends LinearOpMode {
             // Start the timer in case we pressed the wrong button
             startTime = System.currentTimeMillis();
             // Drive away from the wall to read the color sensors
-            driveToWall(0.4, 0.1, 5.0, 3000, false);
+            driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
             if(isStopRequested())
             {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
+            rotateRobotToAngle(0.4, heading, 3000);
         }
 
         return startTime;
     }
 
-    public void captureRedBeacon(int maxTime)
+    public void captureRedBeacon(int maxTime, double heading)
     {
-        final double ROBOT_ANGLE = 269.0;
-        final double READING_DISTANCE = 5.0;
+        final double READING_DISTANCE = 5.5;
         long startTime = 0;
 
         // get close to beacon to read color
-        rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
+        rotateRobotToAngle(0.4, heading, 3000);
         if(isStopRequested())
         {
             return;
@@ -835,7 +870,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
             return;
         }
 
-        startTime = pressCorrectButtonRed();
+        startTime = pressCorrectButtonRed(heading);
         if(isStopRequested())
         {
             return;
@@ -859,18 +894,17 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 }
                 // Pull away from the wall
                 driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
-                rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
+                rotateRobotToAngle(0.4, heading, 3000);
             }
             else
             {
-                pressCorrectButtonRed();
+                pressCorrectButtonRed(heading);
             }
         }
     }
 
-    private long pressCorrectButtonBlue()
+    private long pressCorrectButtonBlue(double heading)
     {
-        final double ROBOT_ANGLE = 90.0;
         final double FRONT_BUTTON_DELTA = 5.0;
         final double BACK_BUTTON_DELTA = 8.0;
         long startTime = 0;
@@ -880,7 +914,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
         if(robot.readBlueFrontColorSensor() > HardwareOmnibot.MIN_BLUE_COLOR_VALUE)
         {
             // Angle the robot towards the front button
-            rotateRobotToAngle(0.4, ROBOT_ANGLE + BACK_BUTTON_DELTA, 3000);
+            rotateRobotToAngle(0.4, heading + BACK_BUTTON_DELTA, 3000);
             if(isStopRequested())
             {
                 return 0;
@@ -900,12 +934,12 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
+            rotateRobotToAngle(0.4, heading, 3000);
         }
         else
         {
             // Rotate the robot towards the front button.
-            rotateRobotToAngle(0.4, ROBOT_ANGLE - FRONT_BUTTON_DELTA, 3000);
+            rotateRobotToAngle(0.4, heading - FRONT_BUTTON_DELTA, 3000);
             if(isStopRequested()) {
                 return 0;
             }
@@ -924,20 +958,19 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
+            rotateRobotToAngle(0.4, heading, 3000);
         }
 
         return startTime;
     }
 
-    public void captureBlueBeacon(int maxTime)
+    public void captureBlueBeacon(int maxTime, double heading)
     {
-        final double ROBOT_ANGLE = 90.0;
-        final double READING_DISTANCE = 5.0;
+        final double READING_DISTANCE = 5.5;
         long startTime = 0;
 
         // get close to beacon to read color
-        rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
+        rotateRobotToAngle(0.4, heading, 3000);
         if(isStopRequested())
         {
             return;
@@ -948,7 +981,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
             return;
         }
 
-        startTime = pressCorrectButtonBlue();
+        startTime = pressCorrectButtonBlue(heading);
         if(isStopRequested())
         {
             return;
@@ -972,11 +1005,11 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 }
                 // Pull away from the wall
                 driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
-                rotateRobotToAngle(0.4, ROBOT_ANGLE, 3000);
+                rotateRobotToAngle(0.4, heading, 3000);
             }
             else
             {
-                pressCorrectButtonBlue();
+                pressCorrectButtonBlue(heading);
             }
         }
     }

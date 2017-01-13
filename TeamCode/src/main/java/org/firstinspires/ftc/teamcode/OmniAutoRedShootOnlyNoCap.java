@@ -7,9 +7,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  * Created by Ethan on 10/30/2016.
  */
 
-@Autonomous(name="Omni: AutoRedShootOnly", group ="Expiremental")
+@Autonomous(name="Omni: AutoRedShootOnlyNoCap", group ="Expiremental")
 
-public class OmniAutoRedShootOnly extends OmniAutoClass {
+public class OmniAutoRedShootOnlyNoCap extends OmniAutoClass {
 
     @Override
     public void runOpMode() throws InterruptedException
@@ -69,7 +69,13 @@ public class OmniAutoRedShootOnly extends OmniAutoClass {
         {
             return;
         }
+
         driveDistanceForwardOnHeading(1.0, 55.0, 3000, false);
+        if(isStopRequested())
+        {
+            return;
+        }
+
         if(isStopRequested())
         {
             return;

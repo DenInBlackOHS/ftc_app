@@ -7,16 +7,17 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  * Created by Ethan on 10/30/2016.
  */
 
-@Autonomous(name="Omni: AutoRedShootOnly", group ="Expiremental")
+@Autonomous(name="Omni: AutoRedVuforia", group ="Expiremental")
 
-public class OmniAutoRedShootOnly extends OmniAutoClass {
+public class OmniAutoRedVurforia extends OmniAutoClass {
 
     @Override
     public void runOpMode() throws InterruptedException
     {
         final double ROBOT_ANGLE = 269.0;
-        final double DRIVE_ANGLE = 0.0;
         setupRobotParameters(4, 40);
+        setupVuforiaImages();
+        setupTextToSpeech();
 
         telemetry.addLine("Ready");
         updateTelemetry(telemetry);
@@ -24,6 +25,7 @@ public class OmniAutoRedShootOnly extends OmniAutoClass {
         waitForStart();
 
         robot.resetGyro();
+        enableVuforiaTracking();
 
         driveToWall(1.0, 0.2, 30.0, 5000, false);
         if(isStopRequested())
@@ -52,35 +54,13 @@ public class OmniAutoRedShootOnly extends OmniAutoClass {
         {
             return;
         }
-        // Move towards the wall a distance we should pick up the line and beacon colors
-        driveToWall(1.0, 0.2, 5.0, 5000, false);
+        acquireRedTarget1(30000);
         if(isStopRequested())
         {
+            // +14 degrees
+            // -880 mm
             return;
         }
-        rotateRobotToAngle(0.6, ROBOT_ANGLE, 7000);
-        if(isStopRequested())
-        {
-            return;
-        }
-
-        driveDistanceForwardOnHeading(1.0, 7.0, 3000, false);
-        if(isStopRequested())
-        {
-            return;
-        }
-        driveDistanceForwardOnHeading(1.0, 55.0, 3000, false);
-        if(isStopRequested())
-        {
-            return;
-        }
-
-        driveDistanceSidewaysOnHeading(-1.0, 2, 1000, false);
-        while(!isStopRequested())
-        {
-            driveAtHeading(1.0, 0.2, ROBOT_ANGLE - 70.0, ROBOT_ANGLE);
-        }
-
         endAuto();
     }
 }
