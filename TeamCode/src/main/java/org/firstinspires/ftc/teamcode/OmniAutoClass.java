@@ -793,7 +793,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
 
     private long pressCorrectButtonRed(double heading)
     {
-        final double FRONT_BUTTON_DELTA = 5.0;
+        final double FRONT_BUTTON_DELTA = 8.0;
         final double BACK_BUTTON_DELTA = 8.0;
         final double READING_DISTANCE = 5.5;
         long startTime = 0;
@@ -822,7 +822,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, heading, 3000);
+            rotateRobotToAngle(0.4, heading - 2, 3000);
         }
         else
         {
@@ -847,7 +847,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, heading, 3000);
+            rotateRobotToAngle(0.4, heading - 2, 3000);
         }
 
         return startTime;
@@ -905,7 +905,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
 
     private long pressCorrectButtonBlue(double heading)
     {
-        final double FRONT_BUTTON_DELTA = 5.0;
+        final double FRONT_BUTTON_DELTA = 8.0;
         final double BACK_BUTTON_DELTA = 8.0;
         long startTime = 0;
 
@@ -934,7 +934,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, heading, 3000);
+            rotateRobotToAngle(0.4, heading + 2, 3000);
         }
         else
         {
@@ -958,7 +958,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, heading, 3000);
+            rotateRobotToAngle(0.4, heading + 2, 3000);
         }
 
         return startTime;
