@@ -649,23 +649,23 @@ public abstract class OmniAutoClass extends LinearOpMode {
         double driveAngle = gyroAngle;
         double robotRotation = maxRotation;
 
-        if(frontSensor)
-        {
-            sensorDistance = robot.readFrontRangeSensor();
-            driveAngle -= 90.0;
-            if(gyroAngle < 0.0)
-            {
-                gyroAngle += 360.0;
-            }
-            else if(gyroAngle > 360.0)
-            {
-                gyroAngle -= 360.0;
-            }
-        }
-        else
-        {
+//        if(frontSensor)
+//        {
+//            sensorDistance = robot.readFrontRangeSensor();
+//            driveAngle -= 90.0;
+//            if(gyroAngle < 0.0)
+//            {
+//                gyroAngle += 360.0;
+//            }
+//            else if(gyroAngle > 360.0)
+//            {
+//                gyroAngle -= 360.0;
+//            }
+//        }
+//        else
+//        {
             sensorDistance = robot.readBackRangeSensor();
-        }
+//        }
         sensorDelta = sensorDistance - distanceFromWallMm;
         sensorError = Math.abs(sensorDelta);
 
@@ -703,14 +703,14 @@ public abstract class OmniAutoClass extends LinearOpMode {
             sleepTime += deltaSleep;
 
             // Get new readings
-            if(frontSensor)
-            {
-                sensorDistance = robot.readFrontRangeSensor();
-            }
-            else
-            {
+//            if(frontSensor)
+//            {
+//                sensorDistance = robot.readFrontRangeSensor();
+//            }
+//            else
+//            {
                 sensorDistance = robot.readBackRangeSensor();
-            }
+//            }
             sensorDelta = sensorDistance - distanceFromWallMm;
             sensorError = Math.abs(sensorDelta);
 
@@ -754,9 +754,9 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 if(lineReading >= HardwareOmnibot.MIN_ODS_VALUE)
                 {
                     lineAcquired = true;
-                    robot.setAllDriveZero();
                     if(!farSide)
                     {
+                        robot.setAllDriveZero();
                         targetAcquired = true;
                     }
                 }
@@ -772,8 +772,8 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 telemetry.addData("LA ODS", lineReading);
                 if(lineReading <= HardwareOmnibot.MIN_ODS_VALUE)
                 {
-                    targetAcquired = true;
                     robot.setAllDriveZero();
+                    targetAcquired = true;
                 }
                 else
                 {

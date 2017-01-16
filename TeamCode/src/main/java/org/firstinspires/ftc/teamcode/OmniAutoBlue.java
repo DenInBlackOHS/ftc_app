@@ -14,8 +14,8 @@ public class OmniAutoBlue extends OmniAutoClass {
     @Override
     public void runOpMode() throws InterruptedException
     {
-        final double ROBOT_ANGLE = 0.0;
-        final double DRIVE_ANGLE = -90.0;
+        final double ROBOT_ANGLE = 90.0;
+        final double DRIVE_ANGLE = 0.0;
         setupRobotParameters(4, 40);
 
         telemetry.addLine("Ready");
@@ -32,7 +32,7 @@ public class OmniAutoBlue extends OmniAutoClass {
         telemetry.addLine("Move To Wall");
         updateTelemetry(telemetry);
 
-        driveToWall(1.0, 0.2, 24.0, 5000, true);
+        driveToWall(1.0, 0.2, 24.0, 10000, true);
         if(isStopRequested())
         {
             return;
@@ -40,7 +40,7 @@ public class OmniAutoBlue extends OmniAutoClass {
 
         // Fire up the shooters, and rotate the robot 90 degrees
         robot.setShooterSpeed(HardwareOmnibot.LOW_SHOOT_SPEED);
-//        rotateRobot(0.4, ROBOT_ANGLE + 7.0, 7000);
+        rotateRobotToAngle(1.0, ROBOT_ANGLE + 7.0, 7000);
         shoot(2000);
         robot.setShooterSpeed(0.0);
         // Check to see if the program should exit
@@ -49,12 +49,12 @@ public class OmniAutoBlue extends OmniAutoClass {
         }
 
         // Move towards the wall a distance we should pick up the line and beacon colors
-        driveToWall(1.0, 0.2, 7.0, 5000, false);
+        driveToWall(1.0, 0.2, 5.0, 5000, false);
         if(isStopRequested())
         {
             return;
         }
-        rotateRobotToAngle(0.6, ROBOT_ANGLE, 7000);
+        rotateRobotToAngle(1.0, ROBOT_ANGLE, 7000);
         if(isStopRequested())
         {
             return;
@@ -72,7 +72,11 @@ public class OmniAutoBlue extends OmniAutoClass {
         }
         // Try getting further from the wall see if we can make the run to beacon 2.
         driveToWall(1.0, 0.2, 10.0, 5000, false);
-        driveDistanceSidewaysOnHeading(-1.0, 57.0, 3000, false);
+        if(isStopRequested())
+        {
+            return;
+        }
+        driveDistanceForwardOnHeading(1.0, 55.0, 3000, true);
         if(isStopRequested())
         {
             return;

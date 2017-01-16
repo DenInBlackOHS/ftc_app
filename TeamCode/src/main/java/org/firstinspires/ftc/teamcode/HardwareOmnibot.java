@@ -83,9 +83,10 @@ public class HardwareOmnibot
     protected ModernRoboticsI2cRangeSensor rangeSensorBack = null;
     private I2cAddr backRangeAddress = I2cAddr.create8bit(ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT.get8Bit() + 0x10);
     private I2cDeviceSynch rangeDeviceBack = null;
-    protected ModernRoboticsI2cRangeSensor rangeSensorFront = null;
-    private I2cAddr frontRangeAddress = ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT;
-    private I2cDeviceSynch rangeDeviceFront = null;
+    // Seems like 2 range sensors just tend to interfere with each other.
+//    protected ModernRoboticsI2cRangeSensor rangeSensorFront = null;
+//    private I2cAddr frontRangeAddress = ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT;
+//    private I2cDeviceSynch rangeDeviceFront = null;
     private boolean rangeSensorsDisabled = false;
 
     private static final int encoderClicksPerSecond = 2800;
@@ -207,10 +208,10 @@ public class HardwareOmnibot
         rangeSensorBack = new ModernRoboticsI2cRangeSensor(rangeDeviceBack);
         rangeSensorBack.setI2cAddress(backRangeAddress);
 
-        rangeDeviceFront = (I2cDeviceSynch)hwMap.get(FRONT_RANGE_SENSOR);
-        rangeDeviceFront.setI2cAddress(frontRangeAddress);
-        rangeSensorFront = new ModernRoboticsI2cRangeSensor(rangeDeviceFront);
-        rangeSensorFront.setI2cAddress(frontRangeAddress);
+//        rangeDeviceFront = (I2cDeviceSynch)hwMap.get(FRONT_RANGE_SENSOR);
+//        rangeDeviceFront.setI2cAddress(frontRangeAddress);
+//        rangeSensorFront = new ModernRoboticsI2cRangeSensor(rangeDeviceFront);
+//        rangeSensorFront.setI2cAddress(frontRangeAddress);
         rangeSensorsDisabled = false;
     }
 
@@ -218,7 +219,7 @@ public class HardwareOmnibot
     {
         if(rangeSensorsDisabled) {
             rangeDeviceBack.engage();
-            rangeDeviceFront.engage();
+//            rangeDeviceFront.engage();
         }
         rangeSensorsDisabled = false;
     }
@@ -227,7 +228,7 @@ public class HardwareOmnibot
     {
         if (!rangeSensorsDisabled) {
             rangeDeviceBack.disengage();
-            rangeDeviceFront.disengage();
+//            rangeDeviceFront.disengage();
         }
         rangeSensorsDisabled = true;
     }
@@ -240,13 +241,13 @@ public class HardwareOmnibot
         return result;
     }
 
-    public double readFrontRangeSensor() {
-        double result = 0.0;
-        if(!rangeSensorsDisabled) {
-            result = rangeSensorFront.getDistance(DistanceUnit.MM);
-        }
-        return result;
-    }
+//    public double readFrontRangeSensor() {
+//        double result = 0.0;
+//        if(!rangeSensorsDisabled) {
+//            result = rangeSensorFront.getDistance(DistanceUnit.MM);
+//        }
+//        return result;
+//    }
 
     public void initOds()
     {

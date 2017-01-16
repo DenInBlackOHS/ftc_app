@@ -14,8 +14,8 @@ public class OmniAutoRed extends OmniAutoClass {
     @Override
     public void runOpMode() throws InterruptedException
     {
-        final double ROBOT_ANGLE = 180.0;
-        final double DRIVE_ANGLE = -90.0;
+        final double ROBOT_ANGLE = 90.0;
+        final double DRIVE_ANGLE = 0.0;
         setupRobotParameters(4, 40);
 
         telemetry.addLine("Ready");
@@ -25,7 +25,7 @@ public class OmniAutoRed extends OmniAutoClass {
 
         robot.resetGyro();
 
-        driveToWall(1.0, 0.2, 24.0, 5000, true);
+        driveToWall(1.0, 0.2, 24.0, 10000, true);
         if(isStopRequested())
         {
             return;
@@ -33,7 +33,7 @@ public class OmniAutoRed extends OmniAutoClass {
 
         // Fire up the shooters, and rotate the robot 90 degrees
         robot.setShooterSpeed(HardwareOmnibot.LOW_SHOOT_SPEED);
-//        rotateRobot(0.4, 7.0, 7000);
+        rotateRobot(1.0, ROBOT_ANGLE, 7000);
         shoot(2000);
         robot.setShooterSpeed(0.0);
         // Check to see if the program should exit
@@ -53,13 +53,13 @@ public class OmniAutoRed extends OmniAutoClass {
         {
             return;
         }
-        rotateRobotToAngle(0.6, ROBOT_ANGLE, 7000);
+        rotateRobotToAngle(1.0, ROBOT_ANGLE, 7000);
         if(isStopRequested())
         {
             return;
         }
 
-        driveDistanceSidewaysOnHeading(-1.0, 9.0, 3000, true);
+        driveDistanceForwardOnHeading(1.0, 7.0, 3000, false);
         if(isStopRequested())
         {
             return;
@@ -75,7 +75,7 @@ public class OmniAutoRed extends OmniAutoClass {
             return;
         }
         driveToWall(1.0, 0.2, 6.0, 5000, false);
-        driveDistanceSidewaysOnHeading(-1.0, 55.0, 3000, true);
+        driveDistanceForwardOnHeading(1.0, 55.0, 3000, false);
         if(isStopRequested())
         {
             return;
