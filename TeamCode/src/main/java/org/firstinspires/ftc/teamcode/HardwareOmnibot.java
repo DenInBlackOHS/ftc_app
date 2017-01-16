@@ -80,12 +80,12 @@ public class HardwareOmnibot
     private boolean colorSensorsDisabled = false;
 
     // Code to allow disabling the color sensors for teleop
-    protected ModernRoboticsI2cRangeSensor rangeSensorFront = null;
-    private I2cAddr frontRangeAddress = ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT;
-    private I2cDeviceSynch rangeDeviceFront = null;
     protected ModernRoboticsI2cRangeSensor rangeSensorBack = null;
     private I2cAddr backRangeAddress = I2cAddr.create8bit(ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT.get8Bit() + 0x10);
     private I2cDeviceSynch rangeDeviceBack = null;
+    protected ModernRoboticsI2cRangeSensor rangeSensorFront = null;
+    private I2cAddr frontRangeAddress = ModernRoboticsI2cRangeSensor.ADDRESS_I2C_DEFAULT;
+    private I2cDeviceSynch rangeDeviceFront = null;
     private boolean rangeSensorsDisabled = false;
 
     private static final int encoderClicksPerSecond = 2800;
@@ -202,16 +202,15 @@ public class HardwareOmnibot
 
     public void initRangeSensors()
     {
-        rangeDeviceFront = (I2cDeviceSynch)hwMap.get(FRONT_RANGE_SENSOR);
-        rangeDeviceFront.setI2cAddress(frontRangeAddress);
-        rangeSensorFront = new ModernRoboticsI2cRangeSensor(rangeDeviceFront);
-        rangeSensorFront.setI2cAddress(frontRangeAddress);
-
         rangeDeviceBack = (I2cDeviceSynch)hwMap.get(BACK_RANGE_SENSOR);
         rangeDeviceBack.setI2cAddress(backRangeAddress);
         rangeSensorBack = new ModernRoboticsI2cRangeSensor(rangeDeviceBack);
         rangeSensorBack.setI2cAddress(backRangeAddress);
 
+        rangeDeviceFront = (I2cDeviceSynch)hwMap.get(FRONT_RANGE_SENSOR);
+        rangeDeviceFront.setI2cAddress(frontRangeAddress);
+        rangeSensorFront = new ModernRoboticsI2cRangeSensor(rangeDeviceFront);
+        rangeSensorFront.setI2cAddress(frontRangeAddress);
         rangeSensorsDisabled = false;
     }
 
