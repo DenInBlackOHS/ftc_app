@@ -40,7 +40,7 @@ public class OmniAutoBlue extends OmniAutoClass {
 
         // Fire up the shooters, and rotate the robot 90 degrees
         robot.setShooterSpeed(HardwareOmnibot.LOW_SHOOT_SPEED);
-        rotateRobotToAngle(1.0, ROBOT_ANGLE + 7.0, 7000);
+        rotateRobotToAngle(0.7, ROBOT_ANGLE, 7000);
         shoot(2000);
         robot.setShooterSpeed(0.0);
         // Check to see if the program should exit
@@ -49,7 +49,7 @@ public class OmniAutoBlue extends OmniAutoClass {
         }
 
         // Move towards the wall a distance we should pick up the line and beacon colors
-        driveToWall(1.0, 0.2, 5.0, 5000, false);
+        driveToWall(1.0, 0.2, 6.0, 5000, false);
         if(isStopRequested())
         {
             return;
@@ -90,11 +90,16 @@ public class OmniAutoBlue extends OmniAutoClass {
         captureBlueBeacon(30000, ROBOT_ANGLE);
 
         // This should knock the cap ball off, and set the robot on the pedestal
-        driveAtHeadingForTime(1.0, 0.2, ROBOT_ANGLE + 37.0, ROBOT_ANGLE, 2500);
-        if(isStopRequested())
-        {
-            return;
-        }
+       // driveAtHeadingForTime(1.0, 0.2, ROBOT_ANGLE + 37.0, ROBOT_ANGLE, 2500);
+       // if(isStopRequested())
+        //{
+        //    return;
+        //}
+
+        final double IMPACT_ANGLE = 120.0;
+        rotateRobotToAngle(1.0, ROBOT_ANGLE + IMPACT_ANGLE, 7000);
+        driveAtHeadingForTime(1.0, 0.2, ROBOT_ANGLE + 55.0, ROBOT_ANGLE + IMPACT_ANGLE, 3500);
+        spinRobot(1.0, 60.0, 3000);
 
         endAuto();
     }

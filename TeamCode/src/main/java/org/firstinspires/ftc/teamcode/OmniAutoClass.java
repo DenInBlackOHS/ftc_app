@@ -447,7 +447,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
         double rotateSpeed = 0.0;
 
         angleRemaining = deltaAngle(targetAngle, gyroReading);
-        while (Math.abs(angleRemaining) > SAME_ANGLE && (sleepTime < maxTime)) {
+        while ((Math.abs(angleRemaining) > SAME_ANGLE && (sleepTime < maxTime) && (!isStopRequested()))) {
             telemetry.addData("Current Angle: ", gyroReading);
             telemetry.addData("Destination Angle: ", targetAngle);
             telemetry.addData("Sleep Time: ", sleepTime);
@@ -471,11 +471,6 @@ public abstract class OmniAutoClass extends LinearOpMode {
             sleepTime += deltaSleep;
             gyroReading = robot.readGyro();
             angleRemaining = deltaAngle(targetAngle, gyroReading);
-            if(isStopRequested())
-            {
-                // If stop has been requested, break out of the while loop.
-                break;
-            }
         }
 
         robot.setAllDriveZero();
@@ -794,7 +789,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
     private long pressCorrectButtonRed(double heading)
     {
         final double FRONT_BUTTON_DELTA = 8.0;
-        final double BACK_BUTTON_DELTA = 8.0;
+        final double BACK_BUTTON_DELTA = 12.0;
         final double READING_DISTANCE = 5.5;
         long startTime = 0;
 
@@ -905,7 +900,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
 
     private long pressCorrectButtonBlue(double heading)
     {
-        final double FRONT_BUTTON_DELTA = 8.0;
+        final double FRONT_BUTTON_DELTA = 10.0;
         final double BACK_BUTTON_DELTA = 8.0;
         long startTime = 0;
 
@@ -1014,6 +1009,172 @@ public abstract class OmniAutoClass extends LinearOpMode {
         }
     }
 
+    /**
+     * Rotate the robot clockwise without regard to shortest rotation
+     * @param maxSpeed - Maximum speed to spin
+     * @param rotationAngle - The angle to rotate the robot
+     * @param maxTime - How long to attempt to spin before giving up
+     */
+    public void spinClockwise(double maxSpeed, double rotationAngle, int maxTime)
+    {
+        double currentAngle = 0.0;
+        double lastAngle = currentAngle;
+        double angleTraveled = 0.0;
+        int elapsedTime = 0;
+        double spinRate = 0.0;
+        final double SAME_ANGLE = 1.0;
+        final int DELTA_SLEEP = 10;
+        double deltaAngle = 0.0;
+
+        while((elapsedTime < maxTime) && (Math.abs(rotationAngle - angleTraveled) > SAME_ANGLE))
+        {
+            currentAngle = robot.readGyro();
+            if(currentAngle >= lastAngle)
+            {
+                angleTraveled += currentAngle - lastAngle;
+            }
+            else
+            {
+                angleTraveled += 360.0 + currentAngle - lastAngle;
+            }
+            telemetry.addData("Current Angle: ", currentAngle);
+            telemetry.addData("Last Angle: ", lastAngle);
+
+            deltaAngle = angleTraveled - rotationAngle;
+            telemetry.addData("Delta Angle: ", deltaAngle);
+            spinRate = controlledRotationAngle(deltaAngle, maxSpeed);
+            // We went too far, come back
+            if(deltaAngle < 0.0)
+            {
+                robot.drive(0.0, 0.0, -spinRate, 0.0);
+                telemetry.addData("Spin Rate: ", -spinRate);
+            }
+            else
+            {
+                robot.drive(0.0, 0.0, spinRate, 0.0);
+                telemetry.addData("Spin Rate: ", spinRate);
+            }
+            if(isStopRequested())
+            {
+                break;
+            }
+            sleep(DELTA_SLEEP);
+            elapsedTime += DELTA_SLEEP;
+
+            telemetry.addData("Elapsed Time: ", elapsedTime);
+            telemetry.update();
+        }
+        robot.setAllDriveZero();
+    }
+
+    /**
+     * Rotate the robot without regard to shortest rotation angle
+     * @param maxSpeed - Maximum speed to spin, negative is CCW
+     * @param rotationAngle - The angle to rotate the robot, negative is CCW
+     * @param maxTime - How long to attempt to spin before giving up
+     */
+    public void spinRobot(double maxSpeed, double rotationAngle, int maxTime)
+    {
+        double currentAngle = robot.readGyro();
+        double lastAngle = currentAngle;
+        double angleTraveled = 0.0;
+        int elapsedTime = 0;
+        double spinRate = 0.0;
+        final double SAME_ANGLE = 1.0;
+        final int DELTA_SLEEP = 10;
+        double deltaAngle = 0.0;
+
+        double normalizedAngle = 0.0;
+        double normalizedSpeed = 0.0;
+
+        // Final version will be speed with a positive angle value.
+        // Speed will dictate CW or CCW
+        if(rotationAngle < 0.0)
+        {
+            normalizedSpeed = - maxSpeed;
+            normalizedAngle = - rotationAngle;
+        }
+        else
+        {
+            normalizedSpeed = maxSpeed;
+            normalizedAngle = rotationAngle;
+        }
+
+        while((elapsedTime < maxTime) && (Math.abs(normalizedAngle - angleTraveled) > SAME_ANGLE)
+                && (!isStopRequested()))
+        {
+            currentAngle = robot.readGyro();
+            if(normalizedSpeed < 0.0)
+            {
+                if(currentAngle >= lastAngle)
+                {
+                    angleTraveled += currentAngle - lastAngle;
+                }
+                else
+                {
+                    angleTraveled += 360.0 + currentAngle - lastAngle;
+                }
+            }
+            else
+            {
+                if(currentAngle <= lastAngle)
+                {
+                    angleTraveled += lastAngle - currentAngle;
+                }
+                else
+                {
+                    angleTraveled += 360.0 + lastAngle - currentAngle;
+                }
+            }
+            telemetry.addData("Current Angle: ", currentAngle);
+            telemetry.addData("Last Angle: ", lastAngle);
+            lastAngle = currentAngle;
+
+            deltaAngle = normalizedAngle - angleTraveled;
+            telemetry.addData("Delta Angle: ", deltaAngle);
+            spinRate = controlledRotationAngle(deltaAngle, normalizedSpeed);
+
+            if(normalizedSpeed < 0.0)
+            {
+                // CCW
+                // We went too far, come back
+                if(deltaAngle < 0.0)
+                {
+                    robot.drive(0.0, 0.0, -spinRate, 0.0);
+                    telemetry.addData("Spin Rate: ", spinRate);
+                }
+                else
+                {
+                    robot.drive(0.0, 0.0, spinRate, 0.0);
+                    telemetry.addData("Spin Rate: ", -spinRate);
+                }
+            }
+            else
+            {
+                // CW
+                // We went too far, come back
+                if(deltaAngle < 0.0)
+                {
+                    robot.drive(0.0, 0.0, -spinRate, 0.0);
+                    telemetry.addData("Spin Rate: ", -spinRate);
+                }
+                else
+                {
+                    robot.drive(0.0, 0.0, spinRate, 0.0);
+                    telemetry.addData("Spin Rate: ", spinRate);
+                }
+            }
+            sleep(DELTA_SLEEP);
+            elapsedTime += DELTA_SLEEP;
+
+            telemetry.addData("Destination Angle: ", normalizedAngle);
+            telemetry.addData("Traveled Angle: ", angleTraveled);
+            telemetry.addData("Elapsed Time: ", elapsedTime);
+            telemetry.update();
+        }
+        robot.setAllDriveZero();
+    }
+
     public void acquireRedTarget1(int maxTime)
     {
         boolean closingYGap = true;
@@ -1087,29 +1248,31 @@ public abstract class OmniAutoClass extends LinearOpMode {
                         telemetry.addData("Y Distance: ", yDistance);
                         telemetry.addData("Dest Angle: ", destinationAngle);
 //                telemetry.addData("Target Distance: ", targetDistance);
-                        if(Math.abs(yDistance) < 1.0)
+                        if(Math.abs(yDistance) < 10.0)
                         {
                             closingYGap = false;
-                            robot.setAllDriveZero();
+    //                        robot.setAllDriveZero();
                         }
                         else
                         {
                             speed = controlledDeceleration(yDistance, 0.5);
-                            driveAtHeading(speed, 0.1, 0.0, 270.0);
+  //                          driveAtHeading(speed, 0.1, 0.0, 270.0);
                         }
                     }
                     else
                     {
                         xDistance = destinationDistance * Math.cos(Math.toRadians(destinationAngle));
-                        if(Math.abs(xDistance) < 1.0)
+                        telemetry.addData("X Distance: ", xDistance);
+                        telemetry.addData("Dest Angle: ", destinationAngle);
+                        if(Math.abs(xDistance) < 10.0)
                         {
                             closingXGap = false;
-                            robot.setAllDriveZero();
+//                            robot.setAllDriveZero();
                         }
                         else
                         {
                             speed = controlledDeceleration(xDistance, 0.5);
-                            driveAtHeading(speed, 0.1, 90.0, 270.0);
+//                            driveAtHeading(speed, 0.1, 90.0, 270.0);
                         }
                     }
                 }

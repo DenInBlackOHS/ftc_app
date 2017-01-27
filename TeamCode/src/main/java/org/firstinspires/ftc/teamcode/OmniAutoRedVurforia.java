@@ -15,6 +15,7 @@ public class OmniAutoRedVurforia extends OmniAutoClass {
     public void runOpMode() throws InterruptedException
     {
         final double ROBOT_ANGLE = 269.0;
+        final double DRIVE_ANGLE = 0.0;
         setupRobotParameters(4, 40);
         setupVuforiaImages();
         setupTextToSpeech();
@@ -27,20 +28,14 @@ public class OmniAutoRedVurforia extends OmniAutoClass {
         robot.resetGyro();
         enableVuforiaTracking();
 
-        driveToWall(1.0, 0.2, 30.0, 5000, false);
+        driveToWall(1.0, 0.2, 24.0, 5000, false);
         if(isStopRequested())
         {
             return;
         }
 
-        // Fire up the shooters, and rotate the robot 90 degrees
-        robot.setShooterSpeed(HardwareOmnibot.MID_LOW_SHOOT_SPEED);
-        rotateRobot(0.6, 90.0, 7000);
-        // Check to see if the program should exit
-        if(isStopRequested())
-        {
-            return;
-        }
+        robot.setShooterSpeed(HardwareOmnibot.LOW_SHOOT_SPEED);
+        rotateRobot(1.0, ROBOT_ANGLE - 180.0, 7000);
         shoot(2000);
         robot.setShooterSpeed(0.0);
         // Check to see if the program should exit
@@ -49,7 +44,7 @@ public class OmniAutoRedVurforia extends OmniAutoClass {
         }
 
         // We should be able to acquire the gears target here
-        rotateRobotToAngle(0.6, ROBOT_ANGLE - 22.0, 7000);
+        rotateRobotToAngle(1.0, ROBOT_ANGLE - 26.0, 7000);
         if(isStopRequested())
         {
             return;
