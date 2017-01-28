@@ -10,7 +10,6 @@ import static java.lang.Math.*;
  */
 
 @TeleOp(name="Omni: TeleOp", group ="TeleOp")
-
 public class OmniTeleOp extends OpMode {
 
     public HardwareOmnibot robot = new HardwareOmnibot();

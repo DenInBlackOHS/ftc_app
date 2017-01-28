@@ -791,7 +791,15 @@ public abstract class OmniAutoClass extends LinearOpMode {
         final double FRONT_BUTTON_DELTA = 8.0;
         final double BACK_BUTTON_DELTA = 12.0;
         final double READING_DISTANCE = 5.5;
-        long startTime = 0;
+        final double ROBOT_SPEED = 0.6;
+        long startTime = System.currentTimeMillis();
+
+        // No blue, robot thinks it is red.
+        if((robot.readBlueFrontColorSensor() < HardwareOmnibot.MIN_BLUE_COLOR_VALUE) &&
+                (robot.readBlueBackColorSensor() < HardwareOmnibot.MIN_BLUE_COLOR_VALUE))
+        {
+            return startTime;
+        }
 
         // We are looking for blue because it is a stronger returning color
         if(robot.readBlueFrontColorSensor() > HardwareOmnibot.MIN_BLUE_COLOR_VALUE)
@@ -803,7 +811,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
                 return 0;
             }
             // The sensor is in the back, so closer to the wall when we press
-            driveToWall(0.4, 0.1, 1.0, 1500, false);
+            driveToWall(ROBOT_SPEED, 0.1, 1.0, 1500, false);
             if(isStopRequested())
             {
                 return 0;
@@ -811,24 +819,24 @@ public abstract class OmniAutoClass extends LinearOpMode {
             // Start the timer in case we pressed the wrong button
             startTime = System.currentTimeMillis();
             // Drive away from the wall to read the color sensors
-            driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
+            driveToWall(ROBOT_SPEED, 0.1, READING_DISTANCE, 3000, false);
             if(isStopRequested())
             {
                 return 0;
             }
             // Straighten out the robot
-            rotateRobotToAngle(0.4, heading - 2, 3000);
+            rotateRobotToAngle(ROBOT_SPEED, heading - 2, 3000);
         }
         else
         {
             // Rotate the robot towards the front button.
-            rotateRobotToAngle(0.4, heading + FRONT_BUTTON_DELTA, 3000);
+            rotateRobotToAngle(ROBOT_SPEED, heading + FRONT_BUTTON_DELTA, 3000);
             if(isStopRequested())
             {
                 return 0;
             }
             // This will probably time out because the sensor is away from the wall because of the angle
-            driveToWall(0.4, 0.1, 2.0, 1500, false);
+            driveToWall(ROBOT_SPEED, 0.1, 2.0, 1500, false);
             if(isStopRequested())
             {
                 return 0;
@@ -836,7 +844,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
             // Start the timer in case we pressed the wrong button
             startTime = System.currentTimeMillis();
             // Drive away from the wall to read the color sensors
-            driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
+            driveToWall(ROBOT_SPEED, 0.1, READING_DISTANCE, 3000, false);
             if(isStopRequested())
             {
                 return 0;
@@ -851,7 +859,9 @@ public abstract class OmniAutoClass extends LinearOpMode {
     public void captureRedBeacon(int maxTime, double heading)
     {
         final double READING_DISTANCE = 5.5;
+        final double ROBOT_SPEED = 0.6;
         long startTime = 0;
+        double wallDistance = 0.0;
 
         // get close to beacon to read color
         rotateRobotToAngle(0.4, heading, 3000);
@@ -859,10 +869,13 @@ public abstract class OmniAutoClass extends LinearOpMode {
         {
             return;
         }
-        driveToWall(0.4, 0.1, READING_DISTANCE, 2000, false);
-        if(isStopRequested())
-        {
-            return;
+        wallDistance = robot.readBackRangeSensor();
+        if(wallDistance > READING_DISTANCE) {
+            driveToWall(ROBOT_SPEED, 0.1, READING_DISTANCE, 2000, false);
+            if(isStopRequested())
+            {
+                return;
+            }
         }
 
         startTime = pressCorrectButtonRed(heading);
@@ -882,13 +895,13 @@ public abstract class OmniAutoClass extends LinearOpMode {
             {
                 sleep(4750);
                 // We can press either button, so just go straight in.
-                driveToWall(0.4, 0.1, 1.0, 1500, false);
+                driveToWall(ROBOT_SPEED, 0.1, 1.0, 1500, false);
                 if(isStopRequested())
                 {
                     return;
                 }
                 // Pull away from the wall
-                driveToWall(0.4, 0.1, READING_DISTANCE, 3000, false);
+                driveToWall(ROBOT_SPEED, 0.1, READING_DISTANCE, 3000, false);
                 rotateRobotToAngle(0.4, heading, 3000);
             }
             else
@@ -902,7 +915,14 @@ public abstract class OmniAutoClass extends LinearOpMode {
     {
         final double FRONT_BUTTON_DELTA = 10.0;
         final double BACK_BUTTON_DELTA = 8.0;
-        long startTime = 0;
+        long startTime = System.currentTimeMillis();
+
+        // All blue, no need to press.
+        if((robot.readBlueFrontColorSensor() > HardwareOmnibot.MIN_BLUE_COLOR_VALUE) &&
+                (robot.readBlueBackColorSensor() > HardwareOmnibot.MIN_BLUE_COLOR_VALUE))
+        {
+            return startTime;
+        }
 
         // We are looking for blue because it is a stronger returning color
         // Front is the back button for blue.
@@ -961,7 +981,7 @@ public abstract class OmniAutoClass extends LinearOpMode {
 
     public void captureBlueBeacon(int maxTime, double heading)
     {
-        final double READING_DISTANCE = 5.5;
+        final double READING_DISTANCE = 5.0;
         long startTime = 0;
 
         // get close to beacon to read color
